@@ -20,14 +20,20 @@ const wide = B.passAtK(B.trainCoverage({ beta: 0.3 }).at(-1), ks);
 console.log(`with a narrowing penalty of 0.3: ${wide.map(pct).join(" ")}`);
 assert(wide[2] > pt[2] + 0.4 && wide[0] < pt[0], "a narrowing penalty should trade pass@1 for coverage");
 
-// step 11: process reward learns where outcome reward cannot
-const outcome = B.trainProcess({ reward: "outcome" }).at(-1).pass;
-const process = B.trainProcess({ reward: "process" }).at(-1).pass;
-console.log(`landing rate after 300 steps: outcome ${pct(outcome)}, process ${pct(process)}`);
-assert(outcome < 0.05 && process > 0.5, "process reward should learn where outcome reward gets no signal");
+// step 11: process reward learns faster at first, then stalls below the outcome reward
+{
+  const curve = (reward) => {
+    const runs = [1, 2, 3, 4].map((seed) => B.trainProcess({ reward, seed }));
+    return runs[0].map((_, i) => mean(runs.map((h) => h[i].pass)));
+  };
+  const out = curve("outcome");
+  const proc = curve("process");
+  console.log(`landing at step 60 / 300: outcome ${pct(out[6])} / ${pct(out[30])}, process ${pct(proc[6])} / ${pct(proc[30])}`);
+  assert(proc[6] > 2 * out[6], "process reward should learn faster early");
+  assert(out[30] > 0.9 && proc[30] < 0.7, "outcome should end near 95% and process stall near 60%");
+}
 
 // step 12: the grpo length bias, averaged like the page (4 runs, last 50 steps)
-B.LENGTH.lengthSd = 20;
 const tail = (runs, key) => {
   const per = runs[0].history.map((_, i) => mean(runs.map((r) => r.history[i][key]).filter(Number.isFinite)));
   return mean(per.slice(-50).filter(Number.isFinite));

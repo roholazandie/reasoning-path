@@ -194,7 +194,7 @@
   // ---------- gepa ----------
 
   const MERGE_EVERY = 4;
-  // the paper invokes merge at most five times per run
+  // at most five accepted merges per run; the paper caps merge invocations at five, which is close
   const MAX_MERGES = 5;
 
   /**

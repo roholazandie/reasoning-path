@@ -762,13 +762,16 @@
     const HACK_SEED = 7;
     const SPUR_BETA = 0.3;
     const ROUNDS = 10;
-    const ROUND_STEPS = 15;
+    // 10 rounds of 30 steps give iterated rlhf the same 300 rl steps as the other two
+    const ROUND_STEPS = 30;
     const showUtility = $(".show-utility", panel);
     const biasSlider = $("#hack-bias", panel);
     const defBeta = $("#def-beta", panel);
     defBeta.value = sliderOf(0.1);
     const utilityOn = () => showUtility.checked;
-    const refUtility = R.evaluate(R.refPolicy(), null, 1000).utility;
+    // recomputed when the hidden utility moves (step 4 lets the reader drag its peak)
+    let refUtility = R.evaluate(R.refPolicy(), null, 1000).utility;
+    let seenVersion = store.version;
     const pe = (policy) => {
       const e = R.evaluate(policy, null, 1000);
       return { ...e, gain: e.utility - refUtility, dx: R.policyMean(policy)[0] - R.UTILITY.center[0] };
@@ -794,16 +797,20 @@
     // part a: the same rlhf with fair and with length-loving labelers
     const spur = ["fair", "biased"].map((kind) => {
       const bias = kind === "fair" ? 0 : R.LENGTH_BIAS;
-      const pairs = R.collectPairs(300, HACK_SEED, { bias });
-      const model = R.fitRewardModel(pairs);
-      const side = { kind, bias, pairs, model, trainer: null, run: 0 };
+      const side = { kind, bias, trainer: null, run: 0, labels: 0 };
+      side.relabel = () => {
+        side.pairs = R.collectPairs(300, HACK_SEED, { bias });
+        side.model = R.fitRewardModel(side.pairs);
+        side.labels++;
+      };
       side.reset = () => {
-        side.trainer = R.reinforceTrainer({ reward: (y) => R.rmReward(model, y), beta: SPUR_BETA, seed: 5 });
+        side.trainer = R.reinforceTrainer({ reward: (y) => R.rmReward(side.model, y), beta: SPUR_BETA, seed: 5 });
         side.step = 0;
       };
+      side.relabel();
       side.reset();
       side.field = new Field($(`#hack-field-${kind}`, panel), {
-        heatmap: () => ({ key: `spur-${kind}`, reward: (y) => R.rmReward(model, y) }),
+        heatmap: () => ({ key: `spur-${kind}-${side.labels}`, reward: (y) => R.rmReward(side.model, y) }),
         utility: utilityOn,
         lengthAxis: true,
         ref: true,
@@ -899,7 +906,17 @@
     let started = false;
     return {
       onShow() {
-        if (started) return;
+        if (store.version !== seenVersion) {
+          seenVersion = store.version;
+          refUtility = R.evaluate(R.refPolicy(), null, 1000).utility;
+          spur.forEach((sd) => {
+            sd.relabel();
+            sd.reset();
+            sd.field.clearWalks();
+          });
+          if (started) resetDefenses();
+        }
+        if (started) return showSpur();
         started = true;
         resetDefenses();
         showSpur();

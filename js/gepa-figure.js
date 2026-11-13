@@ -285,7 +285,7 @@
       const rows = gepa.pool.slice(-14).map((c) => {
         const s = gepa.scores.get(c.id);
         const bestPer = G.TASKS.map((_, t) => Math.max(...gepa.pool.map((d) => gepa.scores.get(d.id)[t])));
-        const cells = s.map((v, t) => `<td class="cell${v === bestPer[t] ? " top" : ""}" style="--v:${v}" title="task ${t + 1}: ${pct(v)}">${Math.round(v * 4)}</td>`).join("");
+        const cells = s.map((v, t) => `<td class="cell${v === bestPer[t] ? " top" : ""}" style="--v:${v}" title="task ${t + 1}: ${pct(v)}">${Math.round(v * settings.paretoSamples)}</td>`).join("");
         const origin = c.origin === "merge" ? `merge of #${c.parents[0]} and #${c.parents[1]}` : c.origin === "base" ? "base prompt" : `from #${c.parent}`;
         const f = front.get(c.id);
         return `<tr><th>#${c.id}</th><td class="origin">${origin}</td>${cells}<td class="freq">${f ? `best on ${f}` : ""}</td></tr>`;

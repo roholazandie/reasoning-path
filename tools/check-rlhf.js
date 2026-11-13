@@ -52,7 +52,8 @@ function defenses(bias) {
   const pairs = R.collectPairs(300, HACK_SEED, { bias });
   const ens = R.conservativeReward(R.fitEnsemble(pairs, 8, HACK_SEED), 3);
   let iter = R.refPolicy();
-  for (let r = 1; r <= 10; r++) iter = R.iterateRound(iter, { beta: 0.1, bias, steps: 15, seed: HACK_SEED * 100 + r }).policy;
+  // 10 rounds of 30 steps: the same 300 rl steps as plain rlhf and the ensemble, as on the page
+  for (let r = 1; r <= 10; r++) iter = R.iterateRound(iter, { beta: 0.1, bias, steps: 30, seed: HACK_SEED * 100 + r }).policy;
   return {
     plain: plainRun(pairs, 0.1),
     ensemble: outcome(R.train(R.reinforceTrainer({ reward: ens, beta: 0.1, seed: 5 }), 300)),
@@ -65,11 +66,10 @@ const d5 = defenses(5);
 for (const [name, d] of [["bias 0", d0], ["bias 2", d2], ["bias 5", d5]]) {
   console.log(`${name}: plain ${f(d.plain.gain)} ensemble ${f(d.ensemble.gain)} iterated ${f(d.iterated.gain)}`);
 }
-assert(d0.ensemble.gain > d0.plain.gain + 0.5, "with fair labels the ensemble should stop the runaway");
-assert(d0.iterated.gain > d0.plain.gain + 0.5, "with fair labels iterated rlhf should stop the runaway");
-assert(d2.ensemble.gain < 0.5, "a shared bias should defeat the ensemble");
-assert(d2.iterated.gain > 0.8, "iterated rlhf should still work at a small bias");
-assert(d5.iterated.gain < 0.5, "a large bias should defeat iterated rlhf too");
+const near = (x, y) => Math.abs(x - y) < 0.02;
+assert(near(d0.plain.gain, -0.59) && near(d0.ensemble.gain, 0.65) && near(d0.iterated.gain, 0.93), "step 8 quotes -0.59, 0.65 and 0.93 at bias 0");
+assert(near(d2.ensemble.gain, -0.48) && near(d2.iterated.gain, 0.56), "step 8 quotes -0.48 and 0.56 at bias 2");
+assert(near(d5.iterated.gain, -0.74), "step 8 quotes -0.74 at bias 5");
 console.log("step 8 ok");
 
 // step 6 quotes these numbers about how much dpo depends on the label set
@@ -137,11 +137,22 @@ console.log("step 8 ok");
 
   const klOf = (trainer, steps) => R.evaluate(R.train(trainer, steps), null, 2000).kl;
   const dpo1 = klOf(R.dpoTrainer({ pairs: R.collectPairs(200, 1, { noise: 1 }), beta: 0.3 }), 600);
-  const dpo01 = klOf(R.dpoTrainer({ pairs: R.collectPairs(200, 1, { noise: 0.1 }), beta: 0.3 }), 600);
+  const dpo01 = klOf(R.dpoTrainer({ pairs: R.collectPairs(200, 1, { noise: 0.25 }), beta: 0.3 }), 600);
   const ipo1 = klOf(R.ipoTrainer({ pairs: R.collectPairs(200, 1, { noise: 1 }), tau: 0.3 }), 600);
-  const ipo01 = klOf(R.ipoTrainer({ pairs: R.collectPairs(200, 1, { noise: 0.1 }), tau: 0.3 }), 600);
-  console.log(`kl, labeler noise 1 / 0.1: dpo ${f(dpo1)} / ${f(dpo01)}, ipo ${f(ipo1)} / ${f(ipo01)}`);
-  assert(Math.abs(dpo1 - 1.8) < 0.1 && Math.abs(dpo01 - 3.1) < 0.1, "step 6 quotes dpo kl 1.8 to 3.1");
-  assert(ipo1 < 0.15 && ipo01 < 0.25, "step 6 quotes ipo kl 0.1 to 0.2");
+  const ipo01 = klOf(R.ipoTrainer({ pairs: R.collectPairs(200, 1, { noise: 0.25 }), tau: 0.3 }), 600);
+  console.log(`kl, labeler noise 1 / 0.25: dpo ${f(dpo1)} / ${f(dpo01)}, ipo ${f(ipo1)} / ${f(ipo01)}`);
+  assert(Math.abs(dpo1 - 1.8) < 0.1 && Math.abs(dpo01 - 2.8) < 0.1, "step 6 quotes dpo kl 1.8 to 2.8");
+  assert(Math.abs(ipo1 - 0.09) < 0.02 && Math.abs(ipo01 - 0.2) < 0.02, "step 6 quotes ipo kl 0.09 to 0.20");
+
+  // step 4 quotes the 4x-noise accuracy as an average over label sets, since single sets swing widely
+  const accAt = (noise) => {
+    let s = 0;
+    for (let seed = 1; seed <= 100; seed++) s += R.pairAccuracy(R.fitRewardModel(R.collectPairs(50, seed * 31, { noise })), held2);
+    return s / 100;
+  };
+  const a025 = accAt(0.25);
+  const a4 = accAt(4);
+  console.log(`accuracy with 50 labels, averaged over 100 sets: noise 0.25 ${f(a025)}, noise 4 ${f(a4)}`);
+  assert(Math.abs(a025 - 0.91) < 0.02 && Math.abs(a4 - 0.7) < 0.03, "step 4 quotes about 91% and about 70%");
   console.log("step 4 and 6 good fits ok");
 }

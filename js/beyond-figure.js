@@ -13,8 +13,6 @@
   const fmt = (x, d = 1) => (Number.isFinite(x) ? x.toFixed(d) : "–");
   const GROW_MS = 700;
   const FADE_MS = 1500;
-  // the length task is the step 1 walk with a learnable chain length, and its length spread is fixed at 20 steps
-  B.LENGTH.lengthSd = 20;
 
   function palette(el) {
     const cs = getComputedStyle(el);

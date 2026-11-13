@@ -75,7 +75,7 @@
   function recompute() {
     p = pOf(variantNow);
     curve = ks.map((k) => 1 - (1 - p) ** k);
-    majority = M.majorityRates(variantNow, variantNow.prompts[0], M.zeroWeights(variantNow), ks, 1200);
+    majority = M.majorityRates(variantNow, variantNow.prompts[0], M.zeroWeights(variantNow), ks, 1500);
     lengthCurve = lengths.map((n) => pOf({ ...variantNow, steps: n }));
     chart.update({ series: [
       { name: "best-of-k, with a verifier", color: "--teal", values: curve },

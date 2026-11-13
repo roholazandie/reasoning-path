@@ -17,7 +17,8 @@ for (const p of am.prompts) {
   console.log(`amortize ${p.isNew ? "new  " : "train"} ${p.start}: ${pct(before)} -> ${pct(after)}`);
   assert(after > before, "training should raise success for every prompt near the training set");
 }
-const far = { start: [-1.1, -1.0], isNew: true };
+// far from every training prompt and still inside the drag limits
+const far = { start: [-0.25, 0.6], isNew: true };
 const nearAfter = M.successRate(am, am.prompts[4], amRuns[M.ROUNDS], true);
 const farAfter = M.successRate(am, far, amRuns[M.ROUNDS], true);
 console.log(`amortize far new prompt after training: ${pct(farAfter)}`);
@@ -84,6 +85,7 @@ console.log("ok");
   const v36 = vote(36);
   console.log(`majority vote k=1/31: 40 steps ${v40.map(pct).join(" ")}, 36 steps ${v36.map(pct).join(" ")}`);
   assert(Math.abs(v40[1] - 0.59) < 0.04, "step 1 quotes about 59% at k = 31");
+  assert(Math.abs(v36[1] - 0.03) < 0.01, "step 1 quotes about 3% at 36 steps");
   assert(v36[1] < v36[0] && v36[1] < 0.04, "voting should make things worse when a wrong answer is most common");
 
   const am3 = M.VARIANTS.amortize;

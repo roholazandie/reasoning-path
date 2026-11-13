@@ -219,7 +219,8 @@
       step() {
         const ys = Array.from({ length: batch }, () => sampleEnd(policy, normal));
         const R = ys.map((y) => reward(y) - beta * (logProb(policy, y) - logProb(ref, y)));
-        // a mean baseline cuts variance without biasing the gradient
+        // a mean baseline cuts variance; including each sample in its own baseline scales the expected
+        // gradient by (n - 1) / n, which leaves its direction unchanged and which adam ignores
         const base = R.reduce((s, x) => s + x, 0) / batch;
         const grad = [0, 0, 0];
         ys.forEach((y, i) => {

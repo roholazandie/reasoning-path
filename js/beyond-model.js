@@ -139,7 +139,8 @@
   }
 
   /** Train with outcome reward (0/1 at the end) or process reward (credit per checkpoint); return history. */
-  function trainProcess({ reward = "outcome", steps = 300, batch = 64, lr = 0.02, beta = 0.3, seed = 1 } = {}) {
+  // a weak kl (0.01) lets the policy narrow enough to land in the small target at all
+  function trainProcess({ reward = "outcome", steps = 300, batch = 64, lr = 0.02, beta = 0.01, seed = 1 } = {}) {
     const normal = gaussianFrom(seededUniform(seed));
     let params = [0, 0, Math.log(PROCESS.sigma)];
     const update = adam(3, lr);
@@ -158,7 +159,6 @@
       const sig = Math.exp(params[2]);
       const m = [PROCESS.start[0] + ARC[0] + params[0], PROCESS.start[1] + ARC[1] + params[1]];
       const samples = Array.from({ length: batch }, () => processPath(policy, normal));
-      // the kl to the base model has a closed form for this gaussian family
       const R = samples.map(({ pts }) => height * (reward === "process" ? processScore(pts) : outcomeOf(pts)));
       const b = mean(R);
       const grad = [0, 0, 0];
@@ -169,10 +169,12 @@
         grad[1] += (a * (y[1] - m[1])) / sig ** 2;
         grad[2] += a * (sq - 2 * W.STEPS);
       });
+      // the kl between the policy's and the base model's whole paths, in closed form: the offset part equals
+      // the endpoint kl, and the spread part adds up over every step, since each step's noise scales with sigma
       const r2 = PROCESS.sigma ** 2;
       grad[0] = grad[0] / batch - (beta * params[0]) / r2;
       grad[1] = grad[1] / batch - (beta * params[1]) / r2;
-      grad[2] = grad[2] / batch - beta * (2 * (sig ** 2 / r2) - 2);
+      grad[2] = grad[2] / batch - beta * W.STEPS * (2 * (sig ** 2 / r2) - 2);
       params = update(params, grad);
       params[2] = Math.max(Math.log(0.02), Math.min(Math.log(0.6), params[2]));
     }
@@ -186,7 +188,7 @@
     target: [0.5, -0.26],
     radius: 0.2,
     sigma40: Math.sqrt(2 * 0.008),
-    lengthSd: 4,
+    lengthSd: 20,
     minL: 12,
     maxL: 90,
   };

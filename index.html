@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css?v=25">
+<link rel="stylesheet" href="css/app.css?v=29">
 </head>
 <body>
 <div class="shell">
@@ -61,7 +61,7 @@
               <input type="range" data-param="steps" min="20" max="80" step="2" value="40" aria-label="Chain length in steps">
             </div>
             <div class="control">
-              <label>Sampling noise = <output data-for="noise">1×</output></label>
+              <label>Sampling noise (variance) = <output data-for="noise">1×</output></label>
               <input type="range" data-param="noise" data-format="x" min="0.25" max="4" step="0.25" value="1" aria-label="Sampling noise">
             </div>
           </div>
@@ -82,8 +82,8 @@
           </div>
           <div class="chart-box"><div class="chart-title">Success with k samples: best-of-k and majority vote</div><div id="bok-chart" class="chart-host"></div></div>
           <div class="chart-box"><div class="chart-title">One path's success against chain length</div><div id="len-chart" class="chart-host"></div></div>
-          <p><b>Majority vote</b> (self-consistency, Wang et al. 2022) needs no verifier: sample k paths and keep the answer that comes up most often. Every correct path gives the same answer, while wrong paths scatter over many different answers, so the vote works when the correct answer is the most common single answer. At 40 steps it climbs to about 59% at k = 31. At 36 steps one wrong answer is more common than the right one, and voting makes things worse: 7% falls to 2%. Wang et al. reported +17.9% on GSM8K. The vote line zigzags because even k gives more ties, which are broken by a coin flip.</p>
-          <p class="note">Best-of-k scales the number of paths. Making each path longer does not help on its own: past about 45 steps the drift carries the walks past 𝒮<sub>x</sub>, and success falls. The thinking budget is the toy version of s1's budget forcing (Muennighoff et al. 2025), which stops a model's thinking early or extends it by appending "Wait". Snell et al. (2024) found that the best way to spend test-time compute, longer chains or more samples, depends on how hard the problem is, and that choosing per problem beat best-of-N by more than 4×.</p>
+          <p><b>Majority vote</b> (self-consistency, Wang et al. 2022) needs no verifier: sample k paths and keep the answer that comes up most often. Every correct path gives the same answer, while wrong paths scatter over many different answers, so the vote works when the correct answer is the most common single answer. At 40 steps it climbs to about 59% at k = 31. At 36 steps one wrong answer is more common than the right one, and voting makes things worse: 7% falls to about 3%. Wang et al. reported +17.9 points on GSM8K. The vote line zigzags because even k gives more ties, which are broken by a coin flip.</p>
+          <p class="note">Best-of-k scales the number of paths. Longer paths help only up to about 45 steps: past that, the drift carries the walks past 𝒮<sub>x</sub>, and success falls. The thinking budget is the toy version of s1's budget forcing (Muennighoff et al. 2025), which stops a model's thinking early or extends it by appending "Wait". Snell et al. (2024) found that the best way to spend test-time compute, for example revising one answer step by step or sampling many in parallel, depends on how hard the problem is, and that adapting the strategy to the estimated difficulty matched best-of-N with about 4× less compute.</p>
           <p class="note">More noise spreads the walks: a little helps them reach a target the drift misses, too much scatters them.</p>
         </aside>
       </div>
@@ -125,7 +125,7 @@
         </figure>
         <aside class="side">
           <div class="formula">∇<sub>θ</sub> p<sub>x</sub> ≈ <span class="frac">M / N</span> · <span class="frac">1/M</span> Σ<sub>landed</sub> ∇<sub>θ</sub> log π<sub>θ</sub>(z<sub>i</sub> | x)</div>
-          <p>With a 0/1 reward, one REINFORCE step is one step of <b>rejection-sampling fine-tuning</b> on the paths that landed, scaled by the success rate <i>M/N</i>.</p>
+          <p>With a 0/1 reward, one step of plain REINFORCE (no baseline) is one step of <b>rejection-sampling fine-tuning</b> on the paths that landed, scaled by the success rate <i>M/N</i>.</p>
           <p>The search cost is paid during training and stored in the weights. This is <b>amortization</b>.</p>
           <p>One set of weights serves every prompt, so the new prompt also improves. Its gain gets smaller as you drag it away from the training prompts.</p>
           <p><b>Generalization width</b> sets how far what is learned at one prompt reaches. Narrow (0.1): each prompt learns only from its own successes, so a prompt that never lands, like the top one, stays at 0%, and the new prompt does not move. Wide: prompts share what they learn, the top one borrows from its neighbours, and the new prompt improves almost as much as the training prompts.</p>
@@ -174,7 +174,7 @@
           <p>The ellipse reaches back toward the prompt. Its wrong answers are the easiest to hit, so after training most walks land there.</p>
           <p>Turn off the imperfect verifier. The same training now lands on the correct answers.</p>
           <p>Reshape the verifier's region and watch the two rates under the figure. Training learns to hit whatever part of the region is easiest to reach. With the default shape, 68% of walks end on wrong answers. Lengthen the region to 0.6 and it covers more of the correct circle: wrong answers fall to 38%.</p>
-          <p><b>Reward hacking needs two things:</b> a reward that is wrong somewhere, and a sampler that explores enough to find that place. More samples and longer RL make both more likely.</p>
+          <p><b>Reward hacking needs two things:</b> a reward that is wrong somewhere, and a sampler that explores enough to find that place. More samples and longer RL make finding that place more likely.</p>
           <p class="note">Step 5 shows the same failure with a reward that people teach, not a program.</p>
           <p class="note">A warning from the other direction: Shao et al. (2025) found that random rewards raised Qwen2.5-Math-7B by 21.4 points on MATH-500, close to the 29.1 points of true rewards. It mostly did not work for Llama3 or OLMo2, and they trace it to GRPO's clipping amplifying habits the model already had. A gain after RL is not proof that the reward taught anything. This toy has no such pretrained habits, so it cannot show the effect.</p>
         </aside>
@@ -213,8 +213,8 @@
             <label for="prefs-noise">Labeler noise = <output id="prefs-noise-out">1×</output></label>
             <input type="range" id="prefs-noise" min="0.25" max="4" step="0.25" value="1">
           </div>
-          <p class="note">The simulated labeler picks A with probability σ((u(A) − u(B)) / noise). The setting applies to new auto labels. With 50 labels, accuracy falls from about 91% at 0.25× to about 53% at 4×. Very precise labels also make the reward model steeper, so the same β pushes the policy further in step 5.</p>
-          <p class="note"><b>AI labeler</b> (RLAIF, Lee et al. 2023): a model labels the pairs instead of people. It is cheap and consistent, and Lee et al. found it comparable to RLHF. But it has its own taste: here it also likes answers further up. Clear the labels and use only the AI labeler: the reward model still ranks 92% of held-out pairs like the hidden utility, yet in step 5 RL lands far above the peak and the true utility gets worse. Ten times more AI labels do not fix it, because the taste is in every label.</p>
+          <p class="note">The simulated labeler picks A with probability σ((u(A) − u(B)) / noise). The setting applies to new auto labels. With 50 labels, accuracy falls from about 91% at 0.25× to about 70% on average at 4×, with large swings from one set of labels to the next. Very precise labels also make the reward model steeper, so the same β pushes the policy further in step 5.</p>
+          <p class="note"><b>AI labeler</b> (RLAIF, Lee et al. 2023): a model labels the pairs instead of people. It is cheap and consistent, and Lee et al. found it comparable to RLHF. But it has its own taste: here it also likes answers further up. Clear the labels and press the AI button four times (200 labels): the reward model still ranks about 92% of held-out pairs like the hidden utility, yet in step 5 RL usually lands far above the peak and the true utility gets worse. More AI labels do not fix it, because the taste is in every label.</p>
           <p class="note">With <b>Show hidden utility</b> on, drag the peak of the dotted circles to change what people want.</p>
           <p class="note" id="prefs-moved" hidden>The peak moved. Labels made before the move still follow the old peak; clear them and label again to follow the new one.</p>
           <div class="readouts">
@@ -274,7 +274,7 @@
         </figure>
         <aside class="side">
           <div class="formula">max<sub>θ</sub> 𝔼<sub>y∼π<sub>θ</sub></sub>[ r<sub>φ</sub>(y) − β log <span class="frac">π<sub>θ</sub>(y) / π<sub>ref</sub>(y)</span> ]</div>
-          <p>Each step samples 128 answers, scores each with r<sub>φ</sub> minus the KL term, and takes a REINFORCE step with a mean baseline. <b>PPO</b>, used in InstructGPT, adds a value baseline and clips each update. The objective is the same.</p>
+          <p>Each step samples 128 answers, scores each with r<sub>φ</sub> minus the KL term, and takes a REINFORCE step with a mean baseline. <b>PPO</b>, used in InstructGPT, adds a value baseline and clips each update. The objective is the same, although InstructGPT also mixes in a loss on pretraining data.</p>
           <div class="readouts grid">
             <div><span>Step</span><b id="rl-step">0</b></div>
             <div><span>KL to base</span><b id="rl-kl">–</b></div>
@@ -356,8 +356,8 @@
         <div class="formula big">ℒ<sub>DPO</sub> = −𝔼 log σ( β log <span class="frac">π<sub>θ</sub>(y<sub>w</sub>) / π<sub>ref</sub>(y<sub>w</sub>)</span> − β log <span class="frac">π<sub>θ</sub>(y<sub>l</sub>) / π<sub>ref</sub>(y<sub>l</sub>)</span> )</div>
         <aside class="side">
           <p>This is the Bradley–Terry loss from step 4, with the reward written as β log π<sub>θ</sub>/π<sub>ref</sub>. The policy <b>is</b> the reward model, so no sampling and no RL loop are needed.</p>
-          <p>DPO only sees the pairs. It cannot learn anything about places where nobody labelled answers.</p>
-          <p><b>IPO</b> (Azar et al. 2023) points at a flaw in DPO: its loss has no floor, so when preferences are certain, it keeps pushing the loser's probability toward zero and the KL term stops mattering. IPO instead fits each pair's log-ratio gap to a fixed target, 1/(2τ). This toy's policy is too simple for DPO to run away completely, but the trend shows: with near-certain labels (labeler noise 0.1×), DPO moves about 70% further from the base model (KL 1.8 to 3.1), while IPO stays close to the base model (KL 0.1 to 0.2). τ and β are not on the same scale, so use the sliders to compare at equal KL.</p>
+          <p>Both methods learn only from the pairs. RLHF then samples answers from its own policy and trusts the reward model's extrapolation there; DPO never samples at all, so it only reshapes probability around the labelled answers.</p>
+          <p><b>IPO</b> (Azar et al. 2023) points at a flaw in DPO: its loss keeps falling as the gap between winner and loser grows, with no finite minimum, so when preferences are certain it keeps pushing the loser's probability toward zero and the KL term stops mattering. IPO instead fits each pair's log-ratio gap to a fixed target, 1/(2τ). In this toy, DPO can keep pushing by narrowing its spread, and only a floor on the spread (0.02) stops it. With near-certain labels (labeler noise 0.25×), DPO's KL rises from 1.8 to 2.8, while IPO's stays near the base model (0.09 to 0.20). τ and β are not on the same scale, so use the sliders to compare at equal KL.</p>
           <p class="note">DPO also depends more on which pairs you happened to label. Over 20 sets of 200 labels at β = 0.3, its spread ranged from 75% to 155% of the base model's, and its true utility gain averaged 0.82, against 1.00 for RLHF. Collect a new set of labels in step 4 and retrain to see it move.</p>
         </aside>
       </div>
@@ -468,7 +468,7 @@
       <div class="controls">
         <button type="button" class="primary" data-act="spur-train">Train both</button>
         <label class="check"><input type="checkbox" class="show-utility" checked> Show hidden utility</label>
-        <span class="note">β = 0.3, the best value from step 5.</span>
+        <span class="note">β = 0.3, near the best value from step 5.</span>
       </div>
       <div class="table-wrap">
         <table>
@@ -480,12 +480,12 @@
           </tbody>
         </table>
       </div>
-      <p class="intro">Singhal et al. (2023) found this in real RLHF: much of the reward gain came from longer answers, and a reward that only counts length reproduced most of RLHF's improvement. The reward model learns exactly what the labelers did, length liking included, and RL follows it. The policy gives longer answers that are worse. A stronger KL penalty only makes both the gain and the drift smaller. It cannot tell length from quality, because the bias is in the data, not in the optimizer.</p>
+      <p class="intro">Singhal et al. (2023) found this in real RLHF: much of the reward gain came from longer answers, and a reward that only counts length reproduced most of RLHF's improvement. The reward model learns exactly what the labelers did, length liking included, and RL follows it. The policy gives longer answers, and they are worse than with fair labelers. A stronger KL penalty limits the damage by stopping earlier, but it cannot remove the bias: the reward model still points toward length, because the bias is in the data, not in the optimizer.</p>
 
       <h2>Two defenses</h2>
       <p class="intro">At β = 0.1, plain RLHF runs past the best answers (step 5). Two common defenses:</p>
       <ul class="intro">
-        <li><b>Ensemble</b> (Coste et al. 2023, who found that conservative ensembles practically eliminate overoptimization for best-of-n). Fit 8 reward models, each on a resample of the labels. Optimize their mean minus 3 × their spread. The models agree where there is data and disagree away from it, so the policy stays near the data.</li>
+        <li><b>Ensemble</b> (a variant of Coste et al. 2023, who found that conservative ensembles practically eliminate overoptimization for best-of-n). Fit 8 reward models, each on a resample of the labels. Optimize their mean minus 3 × their spread. The models agree where there is data and disagree away from it, so the policy stays near the data.</li>
         <li><b>Iterated RLHF.</b> Every 30 steps, label 150 fresh pairs from the current policy and refit the reward model on them. The reward model is always accurate where the policy is now.</li>
       </ul>
       <div class="control-grid">
@@ -537,7 +537,7 @@
       <div class="bench wide">
         <div class="side">
           <p class="note">WARM (Ramé et al. 2024) averages the weights of several reward models into one, instead of averaging their outputs; a policy trained against it won 79.4% of comparisons against one trained on a single reward model. For this toy's straight-line reward models, averaging weights and averaging outputs give the same thing, the ensemble's mean, so WARM adds nothing here. Its advantage needs real networks.</p>
-          <p><b>Try the slider.</b> At 0, both defenses stop the runaway. At 2, the ensemble fails: every member learned the same liking for length, so they agree, and agreement is not caution. Iterated RLHF still works, because near the best answer the quality differences between fresh pairs are larger than the length preference. At 5 and above, the length preference wins there too, and iterated RLHF drifts to long answers.</p>
+          <p><b>Try the slider.</b> At 0, with these labels, both defenses stop the runaway: the ensemble gains 0.65 and iterated RLHF 0.93, against −0.59 for plain RLHF. The ensemble is not reliable, though: with other label sets it fails about two times in five. At 2, the ensemble fails (−0.48): every member learned the same liking for length, so they agree, and agreement is not caution. Iterated RLHF still does best (0.56), because near the best answer the quality differences between fresh pairs outweigh the length preference, but it already drifts toward longer answers. At 5 and above, the length preference wins there too, and iterated RLHF drifts to long answers (−0.74).</p>
         </div>
         <aside class="side">
           <p class="note">In this toy, each reward model is a straight slope, so the iterated version refits on the newest round only. Real reward models are large networks trained on all rounds.</p>
@@ -626,7 +626,7 @@
       </header>
 
       <h2>The candidate pool</h2>
-      <p class="intro">Each row is a candidate; each cell is its score on one task (hits out of 4). Bold cells are the best score on that task. Every few iterations GEPA also tries a <b>merge</b>: when two candidates share an ancestor and changed different modules, it takes module H from one and module V from the other.</p>
+      <p class="intro">Each row is a candidate; each cell is its score on one task (hits out of the samples per task, 4 by default). Bold cells are the best score on that task. Every few iterations GEPA also tries a <b>merge</b>: when two candidates share an ancestor and changed different modules, it takes module H from one and module V from the other.</p>
       <div class="controls">
         <button type="button" class="primary" data-act="g10-run">Spend 300 more rollouts</button>
         <button type="button" class="quiet" data-act="g10-reset">Reset</button>
@@ -652,11 +652,11 @@
       </div>
       <div class="bench wide">
         <div class="side">
-          <p><b>What the paper found.</b> With Qwen3 8B on six benchmarks, GEPA beat GRPO by 6% on average and by up to 20%, with up to 35× fewer rollouts; GRPO used 24,000 rollouts per benchmark. Pareto selection gave a +12.44% aggregate gain against +6.05% for always mutating the best candidate, which stalls. Merge added about one to two points more.</p>
-          <p><b>What this toy shows.</b> Reflection is the big win: random edits in the same loop are far slower. GEPA gets most of the gain with a fraction of GRPO's rollouts. Given all 24,000 rollouts, GRPO ends at about the same level that GEPA reaches by 6,000.</p>
+          <p><b>What the paper found.</b> With Qwen3 8B on six benchmarks, GEPA beat GRPO by 6% on average and by up to 20%, with up to 35× fewer rollouts; GRPO used 24,000 rollouts per benchmark. Pareto selection gave a +12.44% aggregate gain against +6.05% for always mutating the best candidate, which stalls. Merge helped on GPT-4.1 Mini (about one point in aggregate) but lowered the score on Qwen3 8B.</p>
+          <p><b>What this toy shows.</b> Reflection is the big win: random edits in the same loop are far slower. GEPA reaches the threshold with about a third of GRPO's rollouts. By about 6,000 rollouts GRPO catches up, and it ends slightly higher.</p>
         </div>
         <aside class="side">
-          <p class="note">This toy has one best prompt and no dead ends, so greedy selection does about as well as Pareto selection here. On the paper's tasks, the top candidate can sit on a local optimum, and the front keeps other routes open. Numbers from Agrawal et al., "GEPA: Reflective Prompt Evolution Can Outperform Reinforcement Learning" (arXiv 2507.19457), Tables 1 and 3.</p>
+          <p class="note">This toy has one best prompt and no dead ends, so greedy selection is as fast as Pareto selection here, or faster. On the paper's tasks, the top candidate can sit on a local optimum, and the front keeps other routes open. Numbers from Agrawal et al., "GEPA: Reflective Prompt Evolution Can Outperform Reinforcement Learning" (arXiv 2507.19457), Tables 1 and 3.</p>
         </aside>
       </div>
       <button class="next" data-next type="button">Next: what RL can and cannot add</button>
@@ -683,7 +683,7 @@
               <input type="range" id="cov-step" min="0" max="300" step="5" value="300">
             </div>
             <div class="control">
-              <label for="cov-beta">Penalty for narrowing (KL on the spread) = <output id="cov-beta-out">0</output></label>
+              <label for="cov-beta">Penalty for narrowing (pulls the spread back to the base model) = <output id="cov-beta-out">0</output></label>
               <input type="range" id="cov-beta" min="0" max="0.3" step="0.01" value="0">
             </div>
           </div>
@@ -698,7 +698,7 @@
       </div>
 
       <h2>Outcome reward vs process reward</h2>
-      <p class="intro">Make the verifier small (radius 0.08, as in step 7) and the base model almost never lands. An outcome reward, 0/1 at the end, then gives nothing to learn from. A process reward scores the steps on the way: here, how many of 5 checkpoints the path passes inside a corridor around a correct path.</p>
+      <p class="intro">Make the verifier small (radius 0.08, as in step 7) and the base model almost never lands. An outcome reward, 0/1 at the end, then learns only from the rare lucky paths. A process reward scores the steps on the way: here, how many of 5 checkpoints the path passes inside a corridor around a correct path. Both use the same RL loop with a weak KL penalty (β = 0.01).</p>
       <div class="pair">
         <figure class="field"><div class="field-title">Outcome reward: 0/1 at the end</div><canvas id="proc-field-outcome" aria-label="Walks trained with an outcome reward."></canvas></figure>
         <figure class="field"><div class="field-title">Process reward: credit per checkpoint</div><canvas id="proc-field-process" aria-label="Walks trained with a process reward and its checkpoint corridor."></canvas></figure>
@@ -710,8 +710,8 @@
       <div class="bench wide">
         <div class="chart-box"><div class="chart-title">Landing rate during training</div><div id="proc-chart" class="chart-host"></div></div>
         <aside class="side">
-          <p>The process reward gives partial credit long before any path lands, so it has a direction from the first step. Lightman et al. (2023) found that process supervision "significantly outperforms" outcome supervision on MATH, and released 800,000 step-level labels (PRM800K).</p>
-          <p class="note">A process reward is only as good as its corridor: a corridor around a wrong path teaches the wrong path, the step 3 problem one level down.</p>
+          <p>The process reward gives partial credit long before any path lands, so it learns faster at first: it reaches 20% landing in about 50 steps, against about 100 for the outcome reward. Then it stalls near 60%, while the outcome reward keeps climbing to about 95%. The process reward pays for staying in the corridor, which is only a stand-in for landing, and optimizing a stand-in stops short of the real goal.</p>
+          <p class="note">Lightman et al. (2023) trained process and outcome reward models from human labels (PRM800K, 800,000 step-level labels) and used them to pick the best of many sampled solutions; process supervision "significantly outperforms" outcome supervision there, solving 78% of a MATH test subset. This toy instead uses a hand-built corridor as an RL reward, so it shows the trade-off, not their result. A corridor around a wrong path would teach the wrong path: the step 3 problem one level down.</p>
         </aside>
       </div>
       <button class="next" data-next type="button">Next: RL algorithms and best-of-N</button>
@@ -744,7 +744,7 @@
             <li><b>RLOO</b>: weight = reward − mean of the other answers in the group.</li>
             <li><b>GRPO</b>: weight = (reward − group mean) / group spread, then divided by the answer's own length.</li>
             <li><b>Dr. GRPO</b>: GRPO without both divisions.</li>
-            <li><b>PPO-clip</b>: four updates per batch, each stopped once an answer's probability ratio leaves 0.8–1.2.</li>
+            <li><b>PPO-clip</b>: four updates per batch; an answer stops contributing once its probability ratio passes 1.2 while its advantage is positive, or drops below 0.8 while it is negative. Here it uses the group mean as its baseline, with no value network.</li>
           </ul>
           <div class="chart-box"><div class="chart-title">Wrong-answer length minus right-answer length (steps)</div><div id="alg-gap" class="chart-host"></div></div>
           <div class="chart-box"><div class="chart-title">Success rate</div><div id="alg-success" class="chart-host short"></div></div>
@@ -755,9 +755,9 @@
       <div class="table-wrap"><table id="alg-table"></table></div>
       <div class="bench wide">
         <div class="side">
-          <p><b>Chains grow longer.</b> The mean chain length rises during training, from 40 steps to about 44 with REINFORCE and 47 with PPO-clip. DeepSeek-R1-Zero showed "a steady increase in thinking time throughout training" with no instruction to think longer. Here the reason is plain: chains of about 45 steps land most often, so RL moves toward them. Longer is not better in itself, as step 1 showed.</p>
+          <p><b>Chains grow longer.</b> The mean chain length rises during training, from 40 steps to about 44 with REINFORCE and 47 with PPO-clip. DeepSeek-R1-Zero (DeepSeek-AI 2025) thought for longer and longer as RL training went on, with no instruction to do so. Here the reason is plain: chains of about 45 steps land most often, so RL moves toward them. Longer is not better in itself, as step 1 showed.</p>
           <p><b>The length bias.</b> GRPO divides each answer's loss by its length. A long wrong answer then costs less per step than a short one, so training stops pushing away from long wrong answers. Here GRPO's wrong answers end longer than its right ones, while Dr. GRPO's end shorter. Liu et al. (2025) found this in R1-Zero-style training: GRPO "artificially increases response length (especially for incorrect outputs)", and removing the two divisions fixes it.</p>
-          <p><b>The same update three times.</b> REINFORCE with a group mean, RLOO and Dr. GRPO weight answers the same way up to a constant factor, and the Adam optimizer ignores constant factors. REINFORCE and RLOO give identical runs here. Dr. GRPO's run starts identical too, then drifts a little, because rounding changes which random answers land later in training. Ahmadian et al. (2024) found REINFORCE-style RLOO beat PPO for RLHF while being simpler.</p>
+          <p><b>The same update three times.</b> REINFORCE with a group mean, RLOO and Dr. GRPO weight answers the same way up to a constant factor, and the Adam optimizer ignores constant factors. REINFORCE and RLOO give identical runs here. Dr. GRPO's run starts identical too, then drifts a little, because floating-point rounding changes which random answers land later in training. Ahmadian et al. (2024) found REINFORCE-style RLOO beat PPO for RLHF while being simpler.</p>
           <p><b>Clipping.</b> Raise the learning rate to 0.1 (release the slider to rerun): REINFORCE falls to about 3% success and GRPO to about 7%, while PPO-clip keeps about 14%. At 0.3 all of them break.</p>
         </div>
         <aside class="side">
@@ -783,16 +783,16 @@
     </section>
   </main>
 </div>
-<script src="js/walks-model.js?v=25"></script>
-<script src="js/rlhf-model.js?v=25"></script>
-<script src="js/chart.js?v=25"></script>
-<script src="js/walks-figure.js?v=25"></script>
-<script src="js/rlhf-figure.js?v=25"></script>
-<script src="js/gepa-model.js?v=25"></script>
-<script src="js/gepa-figure.js?v=25"></script>
-<script src="js/beyond-model.js?v=25"></script>
-<script src="js/beyond-figure.js?v=25"></script>
-<script src="js/app.js?v=25"></script>
-<script src="js/recorder.js?v=25"></script>
+<script src="js/walks-model.js?v=29"></script>
+<script src="js/rlhf-model.js?v=29"></script>
+<script src="js/chart.js?v=29"></script>
+<script src="js/walks-figure.js?v=29"></script>
+<script src="js/rlhf-figure.js?v=29"></script>
+<script src="js/gepa-model.js?v=29"></script>
+<script src="js/gepa-figure.js?v=29"></script>
+<script src="js/beyond-model.js?v=29"></script>
+<script src="js/beyond-figure.js?v=29"></script>
+<script src="js/app.js?v=29"></script>
+<script src="js/recorder.js?v=29"></script>
 </body>
 </html>
