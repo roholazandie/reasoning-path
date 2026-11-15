@@ -55,7 +55,8 @@
   const VARIANTS = {
     walks: {
       diffusion: 0.008,
-      // tall enough for the longest chain-length setting, which curls down past the target
+      // the view follows the chain-length and noise sliders, so the default setting fills the canvas
+      fit: true,
       view: [-1.12, 1.3, -1.45, 0.5],
       prompts: [{ start: [-0.75, 0], regions: [{ kind: "correct", center: [0.5, -0.26], r: 0.2 }] }],
     },
@@ -339,10 +340,34 @@
     return points;
   }
 
+  // walks rarely leave this band; 2.5 deviations keeps the box tight without clipping many trails
+  const SPREAD_SDS = 2.5;
+  /** Return the [x0, x1, y0, y1] box that holds every prompt, region and the likely spread of walks. */
+  function contentBox(variant, weights) {
+    const box = [Infinity, -Infinity, Infinity, -Infinity];
+    const add = (x, y, pad) => {
+      box[0] = Math.min(box[0], x - pad);
+      box[1] = Math.max(box[1], x + pad);
+      box[2] = Math.min(box[2], y - pad);
+      box[3] = Math.max(box[3], y + pad);
+    };
+    const w = weights || zeroWeights(variant);
+    for (const prompt of variant.prompts) {
+      const o = offset(variant, w, prompt.start);
+      for (let k = 0; k <= stepsOf(variant); k++) {
+        const a = arcFor(k);
+        const sd = Math.sqrt(2 * diffusionOf(variant) * DT * k);
+        add(prompt.start[0] + a[0] + o[0] * DT * k, prompt.start[1] + a[1] + o[1] * DT * k, SPREAD_SDS * sd);
+      }
+      for (const g of regionsOf(variant, prompt)) add(g.center[0], g.center[1], g.semiAxes ? g.semiAxes[0] : g.r);
+    }
+    return box;
+  }
+
   const api = {
     STEPS, DT, ROUNDS, HEADING, TURN, DRIFT, VARIANTS, arcFor, stepsOf, driftAt,
     regionsOf, radiusAt, contains, isCorrect, verifierAccepts,
-    zeroWeights, train, successRate, sampleWalk, gaussianFrom, majorityRates, landingField, offset,
+    zeroWeights, train, successRate, sampleWalk, gaussianFrom, majorityRates, landingField, offset, contentBox,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.ReasoningWalks = api;

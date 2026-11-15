@@ -38,8 +38,12 @@
     let rounds = [];
     let lastRound = 0;
     let tally = { won: 0, played: 0 };
-    const [vx0, vx1, vy0, vy1] = variant.view;
-    canvas.style.aspectRatio = `${vx1 - vx0} / ${vy1 - vy0}`;
+    // a fitted view moves with the sliders, so its canvas keeps one shape and the box is centered inside it
+    const FIT_ASPECT = 1.6;
+    // room in pixels for the labels drawn outside the content box: [left, right, top, bottom]
+    const FIT_MARGIN = [34, 34, 26, 40];
+    let [vx0, vx1, vy0, vy1] = variant.view;
+    canvas.style.aspectRatio = variant.fit ? String(FIT_ASPECT) : `${vx1 - vx0} / ${vy1 - vy0}`;
 
     let colors = {};
     let trails = [];
@@ -555,10 +559,18 @@
       height = canvas.clientHeight;
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
-      scale = Math.min(width / (vx1 - vx0), height / (vy1 - vy0));
-      originX = width / 2 - (scale * (vx0 + vx1)) / 2;
-      originY = height / 2 + (scale * (vy0 + vy1)) / 2;
+      fitView();
       render(performance.now());
+    }
+
+    function fitView() {
+      const [l, r, t, b] = variant.fit ? FIT_MARGIN : [0, 0, 0, 0];
+      if (variant.fit) [vx0, vx1, vy0, vy1] = M.contentBox(variant, weights());
+      const w = Math.max(1, width - l - r);
+      const h = Math.max(1, height - t - b);
+      scale = Math.min(w / (vx1 - vx0), h / (vy1 - vy0));
+      originX = l + w / 2 - (scale * (vx0 + vx1)) / 2;
+      originY = t + h / 2 + (scale * (vy0 + vy1)) / 2;
     }
 
     if (variant.draggable) attachDrag();
@@ -634,6 +646,7 @@
         const out = fig.querySelector(`output[data-for=${key}]`);
         if (out) out.textContent = input.dataset.format === "x" ? `${value}×` : input.value;
         if (RETRAIN.has(key)) runs = trainAll();
+        if (variant.fit) fitView();
       };
       input.addEventListener("input", () => {
         apply();
