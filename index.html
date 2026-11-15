@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css?v=29">
+<link rel="stylesheet" href="css/app.css?v=30">
 </head>
 <body>
 <div class="shell">
@@ -101,7 +101,7 @@
       </header>
       <div class="bench">
         <figure class="field" data-variant="amortize">
-          <canvas aria-label="Four training prompts, each with its own target region, and one draggable new prompt."></canvas>
+          <canvas aria-label="Four training prompts, each joined to its own target region, and one draggable new prompt. A shaded field shows the landing rate a prompt would get at each spot."></canvas>
           <div class="controls"></div>
           <div class="control-grid">
             <div class="control">
@@ -121,7 +121,7 @@
               <input type="range" data-param="keepScale" min="0.5" max="2.5" step="0.1" value="1" aria-label="Filter threshold">
             </div>
           </div>
-          <figcaption>Drag the hollow prompt. The model never trains on it.</figcaption>
+          <figcaption>Drag the hollow prompt. The model never trains on it. The shading in the boxed area shows how often one sample lands if a prompt sits at that spot, with contour lines at 20%, 40% and 60% (the best any prompt can do here is about 76%). Arrows show the learned offset: which way, and how far, training moves where the paths from that spot end. Dotted lines join each prompt to its own target.</figcaption>
         </figure>
         <aside class="side">
           <div class="formula">∇<sub>θ</sub> p<sub>x</sub> ≈ <span class="frac">M / N</span> · <span class="frac">1/M</span> Σ<sub>landed</sub> ∇<sub>θ</sub> log π<sub>θ</sub>(z<sub>i</sub> | x)</div>
@@ -783,16 +783,16 @@
     </section>
   </main>
 </div>
-<script src="js/walks-model.js?v=29"></script>
-<script src="js/rlhf-model.js?v=29"></script>
-<script src="js/chart.js?v=29"></script>
-<script src="js/walks-figure.js?v=29"></script>
-<script src="js/rlhf-figure.js?v=29"></script>
-<script src="js/gepa-model.js?v=29"></script>
-<script src="js/gepa-figure.js?v=29"></script>
-<script src="js/beyond-model.js?v=29"></script>
-<script src="js/beyond-figure.js?v=29"></script>
-<script src="js/app.js?v=29"></script>
-<script src="js/recorder.js?v=29"></script>
+<script src="js/walks-model.js?v=30"></script>
+<script src="js/rlhf-model.js?v=30"></script>
+<script src="js/chart.js?v=30"></script>
+<script src="js/walks-figure.js?v=30"></script>
+<script src="js/rlhf-figure.js?v=30"></script>
+<script src="js/gepa-model.js?v=30"></script>
+<script src="js/gepa-figure.js?v=30"></script>
+<script src="js/beyond-model.js?v=30"></script>
+<script src="js/beyond-figure.js?v=30"></script>
+<script src="js/app.js?v=30"></script>
+<script src="js/recorder.js?v=30"></script>
 </body>
 </html>

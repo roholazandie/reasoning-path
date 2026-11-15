@@ -230,6 +230,45 @@
     return count / CLOUD.length;
   }
 
+  // e^-x I0(x), from Abramowitz and Stegun 9.8.1 and 9.8.2
+  function scaledI0(x) {
+    if (x <= 3.75) {
+      const t = (x / 3.75) ** 2;
+      return Math.exp(-x) * (1 + t * (3.5156229 + t * (3.0899424 + t * (1.2067492 + t * (0.2659732 + t * (0.0360768 + t * 0.0045813))))));
+    }
+    const t = 3.75 / x;
+    return (0.39894228 + t * (0.01328592 + t * (0.00225319 + t * (-0.00157565 + t * (0.00916281 +
+      t * (-0.02057706 + t * (0.02635537 + t * (-0.01647633 + t * 0.00392377)))))))) / Math.sqrt(x);
+  }
+
+  /** Return the exact chance that a round gaussian with this sd, centred d away from a disk of radius r, lands in it. */
+  function diskProbability(d, r, sd) {
+    const s2 = sd * sd;
+    const n = 40;
+    const f = (rho) => (rho / s2) * Math.exp(-((rho - d) ** 2) / (2 * s2)) * scaledI0((rho * d) / s2);
+    let sum = f(0) + f(r);
+    for (let i = 1; i < n; i++) sum += (i % 2 ? 4 : 2) * f((r * i) / n);
+    return Math.min(1, (sum * r) / (3 * n));
+  }
+
+  /**
+   * Return a ny-by-nx grid (row 0 at y0) of one sample's landing rate for a prompt placed at each point,
+   * after training; the prompt's target comes from regionsFor, so this works only for the amortize variant.
+   */
+  function landingField(variant, weights, [x0, x1, y0, y1], nx, ny) {
+    const out = new Float32Array(nx * ny);
+    const sd = endpointSd(variant);
+    for (let j = 0; j < ny; j++) {
+      for (let i = 0; i < nx; i++) {
+        const start = [x0 + ((x1 - x0) * i) / (nx - 1), y0 + ((y1 - y0) * j) / (ny - 1)];
+        const mean = endpointMean(variant, weights, start);
+        const g = variant.regionsFor(start)[0];
+        out[j * nx + i] = diskProbability(Math.hypot(mean[0] - g.center[0], mean[1] - g.center[1]), g.r, sd);
+      }
+    }
+    return out;
+  }
+
   // every correct answer is the same answer (like "55"); wrong answers differ by which grid cell they fall in,
   // the way different mistakes give different numbers
   const CELL = 0.15;
@@ -303,7 +342,7 @@
   const api = {
     STEPS, DT, ROUNDS, HEADING, TURN, DRIFT, VARIANTS, arcFor, stepsOf, driftAt,
     regionsOf, radiusAt, contains, isCorrect, verifierAccepts,
-    zeroWeights, train, successRate, sampleWalk, gaussianFrom, majorityRates,
+    zeroWeights, train, successRate, sampleWalk, gaussianFrom, majorityRates, landingField, offset,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.ReasoningWalks = api;

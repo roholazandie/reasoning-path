@@ -207,6 +207,155 @@
       }
     }
 
+    // where the new prompt can be dragged, kept far enough left that its target region stays on screen
+    const dragBounds = () => [vx0 + 0.05, vx1 - 1.85, vy0 + 0.1, vy1 - 0.1];
+    const LEVELS = [0.2, 0.4, 0.6];
+    const CELL_PX = 5;
+    let fieldCache = { key: "", image: null, lines: null };
+
+    /** Return line segments, in grid coordinates, where the field crosses t (marching squares). */
+    function isoline(field, cols, rows, t) {
+      const segs = [];
+      const at = (i, j) => field[j * cols + i];
+      const cross = (i0, j0, i1, j1) => {
+        const f = (t - at(i0, j0)) / (at(i1, j1) - at(i0, j0));
+        return [i0 + f * (i1 - i0), j0 + f * (j1 - j0)];
+      };
+      for (let j = 0; j + 1 < rows; j++) {
+        for (let i = 0; i + 1 < cols; i++) {
+          const pts = [];
+          // walk the four edges of the cell; each sign change contributes one crossing point
+          const corners = [[i, j], [i + 1, j], [i + 1, j + 1], [i, j + 1]];
+          for (let e = 0; e < 4; e++) {
+            const [a0, b0] = corners[e];
+            const [a1, b1] = corners[(e + 1) % 4];
+            if ((at(a0, b0) >= t) !== (at(a1, b1) >= t)) pts.push(cross(a0, b0, a1, b1));
+          }
+          if (pts.length >= 2) segs.push([pts[0], pts[1]]);
+          if (pts.length === 4) segs.push([pts[2], pts[3]]);
+        }
+      }
+      return segs;
+    }
+
+    // the shading answers "how often would one sample land if the prompt sat here?", so the gain from
+    // training, and how it fades away from the training prompts, can be read straight off the background
+    function drawField(w) {
+      const [x0, x1, y0, y1] = dragBounds();
+      const [px0, py0] = toPx([x0, y1]);
+      const [px1, py1] = toPx([x1, y0]);
+      const cols = Math.max(2, Math.round((px1 - px0) / CELL_PX));
+      const rows = Math.max(2, Math.round((py1 - py0) / CELL_PX));
+      const key = `${round}|${variant.bumpWidth}|${variant.batch}|${variant.keepScale}|${cols}|${rows}|${colors.red}`;
+      if (fieldCache.key !== key) {
+        // rows run top to bottom on screen, so the grid is sampled from y1 down
+        const field = M.landingField(variant, w, [x0, x1, y1, y0], cols, rows);
+        const [r, g, b] = [1, 3, 5].map((i) => parseInt(colors.red.slice(i, i + 2), 16));
+        const off = document.createElement("canvas");
+        off.width = cols;
+        off.height = rows;
+        const octx = off.getContext("2d");
+        const img = octx.createImageData(cols, rows);
+        field.forEach((p, k) => img.data.set([r, g, b, Math.round(255 * 0.42 * p)], 4 * k));
+        octx.putImageData(img, 0, 0);
+        fieldCache = { key, image: off, lines: LEVELS.map((t) => isoline(field, cols, rows, t)) };
+      }
+      ctx.globalAlpha = 1;
+      ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(fieldCache.image, px0, py0, px1 - px0, py1 - py0);
+      // grid point i sits at px0 + i * step, so the lines land where the samples were taken
+      const sx = (px1 - px0) / (cols - 1);
+      const sy = (py1 - py0) / (rows - 1);
+      ctx.strokeStyle = colors.red;
+      ctx.lineCap = "round";
+      fieldCache.lines.forEach((segs, n) => {
+        ctx.globalAlpha = 0.35 + 0.2 * n;
+        ctx.lineWidth = 0.8 + 0.35 * n;
+        ctx.beginPath();
+        for (const [[ax, ay], [bx, by]] of segs) {
+          ctx.moveTo(px0 + ax * sx, py0 + ay * sy);
+          ctx.lineTo(px0 + bx * sx, py0 + by * sy);
+        }
+        ctx.stroke();
+      });
+      ctx.lineCap = "butt";
+      ctx.globalAlpha = 0.5;
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = colors.regionLine;
+      ctx.strokeRect(px0, py0, px1 - px0, py1 - py0);
+      drawOffsets(w, [x0, x1, y0, y1]);
+    }
+
+    const ARROW_GAP = 0.15;
+    // a fixed scale, not one fitted to the longest arrow, so lengths compare across rounds and widths
+    const ARROW_SCALE = 0.3;
+
+    // the learned offset at each spot: which way, and how far, training moves the end of a path that
+    // starts there; the weights are shared, so the arrows vary smoothly and fade away from the training prompts
+    function drawOffsets(w, [x0, x1, y0, y1]) {
+      const nx = Math.floor((x1 - x0) / ARROW_GAP);
+      const ny = Math.floor((y1 - y0) / ARROW_GAP);
+      const mx = (x1 - x0 - nx * ARROW_GAP) / 2;
+      const my = (y1 - y0 - ny * ARROW_GAP) / 2;
+      const [bx0, by0] = toPx([x0, y1]);
+      const [bx1, by1] = toPx([x1, y0]);
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(bx0, by0, bx1 - bx0, by1 - by0);
+      ctx.clip();
+      ctx.strokeStyle = ctx.fillStyle = colors.ink;
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= nx; i++) {
+        for (let j = 0; j <= ny; j++) {
+          const q = [x0 + mx + i * ARROW_GAP, y0 + my + j * ARROW_GAP];
+          // leave the prompt dots clear
+          if (variant.prompts.some((p) => Math.hypot(p.start[0] - q[0], p.start[1] - q[1]) < 0.07)) continue;
+          const o = M.offset(variant, w, q);
+          const len = Math.hypot(o[0], o[1]) * ARROW_SCALE * scale;
+          if (len < 2) continue;
+          // centred on the grid point, so arrows never spill far outside the box
+          const [cx, cy] = toPx(q);
+          const ux = o[0] / Math.hypot(o[0], o[1]);
+          const uy = -o[1] / Math.hypot(o[0], o[1]);
+          const [ax, ay] = [cx - (ux * len) / 2, cy - (uy * len) / 2];
+          const [bx, by] = [cx + (ux * len) / 2, cy + (uy * len) / 2];
+          const head = Math.min(5, len * 0.45);
+          ctx.globalAlpha = 0.55;
+          ctx.beginPath();
+          ctx.moveTo(ax, ay);
+          ctx.lineTo(bx - ux * head * 0.6, by - uy * head * 0.6);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(bx, by);
+          ctx.lineTo(bx - ux * head - uy * head * 0.5, by - uy * head + ux * head * 0.5);
+          ctx.lineTo(bx - ux * head + uy * head * 0.5, by - uy * head - ux * head * 0.5);
+          ctx.closePath();
+          ctx.fill();
+        }
+      }
+      ctx.restore();
+    }
+
+    // each prompt is tied to its own target, so the reader can see which circle belongs to which prompt
+    function drawLinks() {
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = colors.ink;
+      ctx.setLineDash([2, 4]);
+      for (const p of variant.prompts) {
+        const g = M.regionsOf(variant, p)[0];
+        const [sx, sy] = toPx(p.start);
+        const [cx, cy] = toPx(g.center);
+        const len = Math.hypot(cx - sx, cy - sy);
+        const cut = (g.r * scale) / len;
+        ctx.globalAlpha = p.isNew ? 0.55 : 0.3;
+        ctx.beginPath();
+        ctx.moveTo(sx + (cx - sx) * (8 / len), sy + (cy - sy) * (8 / len));
+        ctx.lineTo(cx - (cx - sx) * cut, cy - (cy - sy) * cut);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+    }
+
     function drawCorrectRegions(w) {
       for (const prompt of variant.prompts) {
         const regions = M.regionsOf(variant, prompt);
@@ -333,6 +482,10 @@
       ctx.textAlign = "center";
       ctx.lineJoin = "round";
       const w = weights();
+      if (variant.draggable) {
+        drawField(w);
+        drawLinks();
+      }
       drawAcceptedRegions();
       drawCorrectRegions(w);
       drawTrails(now);
@@ -441,8 +594,8 @@
         canvas.style.cursor = dragging ? "grabbing" : near(x, y) ? "grab" : "";
         if (!dragging) return;
         const q = toWorld(x + grab[0], y + grab[1]);
-        // keep the prompt far enough left that its target region stays on screen
-        target.start = [Math.max(vx0 + 0.05, Math.min(vx1 - 1.85, q[0])), Math.max(vy0 + 0.1, Math.min(vy1 - 0.1, q[1]))];
+        const [x0, x1, y0, y1] = dragBounds();
+        target.start = [Math.max(x0, Math.min(x1, q[0])), Math.max(y0, Math.min(y1, q[1]))];
         reset();
         play();
       });
