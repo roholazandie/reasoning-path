@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css?v=31">
+<link rel="stylesheet" href="css/app.css?v=32">
 </head>
 <body>
 <div class="shell">
@@ -563,12 +563,12 @@
         <span class="step">9</span>
         <div>
           <h1>GEPA: reflective prompt evolution</h1>
-          <p class="lede">Every method so far changed the weights. GEPA (Agrawal et al., 2025) leaves the weights alone and rewrites the prompt. It runs a few tasks, reads in words what went wrong, and edits the instructions.</p>
+          <p class="lede">Every method so far changed the weights, which bends the paths. GEPA (Agrawal et al., 2025) leaves the weights alone and rewrites the prompt. The prompt is part of the context, so it changes where each chain starts. The frozen model then walks its usual arc from a better place. GEPA runs a few tasks, reads in words what went wrong, and edits the instructions.</p>
         </div>
       </header>
       <div class="bench">
         <figure class="field">
-          <canvas id="gepa-field" aria-label="Eight tasks, each with a start on the left and a dashed target on the right, and walks from the current prompt."></canvas>
+          <canvas id="gepa-field" aria-label="Eight tasks. Each bare task is a ring on the left; an arrow shows where the current prompt moves the chain's start, and walks of the frozen model leave from there toward a dashed target on the right."></canvas>
           <div class="controls">
             <button type="button" class="primary" data-act="g9-step">Run one iteration</button>
             <button type="button" data-act="g9-ten">Run 10</button>
@@ -589,7 +589,7 @@
               <input type="range" id="g9-pareto" min="1" max="8" step="1" value="4">
             </div>
           </div>
-          <figcaption>Eight tasks, one frozen model. Dashed circles: each task's correct answers. Amber: the 3 tasks in this minibatch. Hollow dot: the parent's answer. Teal dot: the child's.</figcaption>
+          <figcaption>Eight tasks, one frozen model. Ring: the bare task. Teal arrow: where the prompt moves the start, and the walks leave from its head. Every walk has the same shape; only its start changes. Dashed circles: each task's correct answers, with one walk's landing rate. Teal walks land. Amber: the tasks in this minibatch, with a dashed arrow from the parent's start to the child's. Hollow dot: the parent's answer. Teal dot: the child's.</figcaption>
         </figure>
         <aside class="side">
           <div class="readouts">
@@ -599,7 +599,7 @@
           </div>
           <div class="chart-title" id="g9-prompt-title">Prompt</div>
           <div id="g9-prompt" class="prompt"></div>
-          <p class="note">The system has two modules, like two LLM calls in a pipeline. Each line steers the answers. The numbers are what the line does in this toy; GEPA itself only sees the words.</p>
+          <p class="note">The system has two modules, like two LLM calls in a pipeline. Each line moves where the chains start: module H left or right, module V up or down. The numbers are what the line does in this toy; GEPA itself only sees the words.</p>
         </aside>
       </div>
       <div class="bench wide">
@@ -635,7 +635,7 @@
       <div class="table-wrap"><table id="g10-pool" class="pool"></table></div>
 
       <h2>GEPA against GRPO</h2>
-      <p class="intro">GRPO trains the same four numbers as weights, with a 0/1 reward and a group-relative baseline: 8 rollouts per task, scored against each other. GEPA edits the prompt from text feedback. Both see the same tasks and pay for every rollout.</p>
+      <p class="intro">GRPO trains the same four numbers as weights, with a 0/1 reward and a group-relative baseline: 8 rollouts per task, scored against each other. Weights bend the paths; the prompt moves their starts. In this toy the model's drift is the same everywhere, so both can reach exactly the same answers, and the race is only about how many rollouts each needs. GEPA edits the prompt from text feedback. Both see the same tasks and pay for every rollout.</p>
       <div class="chart-box">
         <div class="chart-title">Test success against rollouts, mean of 6 runs</div>
         <div id="g10-chart" class="chart-host tall"></div>
@@ -783,16 +783,16 @@
     </section>
   </main>
 </div>
-<script src="js/walks-model.js?v=31"></script>
-<script src="js/rlhf-model.js?v=31"></script>
-<script src="js/chart.js?v=31"></script>
-<script src="js/walks-figure.js?v=31"></script>
-<script src="js/rlhf-figure.js?v=31"></script>
-<script src="js/gepa-model.js?v=31"></script>
-<script src="js/gepa-figure.js?v=31"></script>
-<script src="js/beyond-model.js?v=31"></script>
-<script src="js/beyond-figure.js?v=31"></script>
-<script src="js/app.js?v=31"></script>
-<script src="js/recorder.js?v=31"></script>
+<script src="js/walks-model.js?v=32"></script>
+<script src="js/rlhf-model.js?v=32"></script>
+<script src="js/chart.js?v=32"></script>
+<script src="js/walks-figure.js?v=32"></script>
+<script src="js/rlhf-figure.js?v=32"></script>
+<script src="js/gepa-model.js?v=32"></script>
+<script src="js/gepa-figure.js?v=32"></script>
+<script src="js/beyond-model.js?v=32"></script>
+<script src="js/beyond-figure.js?v=32"></script>
+<script src="js/app.js?v=32"></script>
+<script src="js/recorder.js?v=32"></script>
 </body>
 </html>

@@ -29,6 +29,8 @@
       this.marks = [];
       this.highlight = new Set();
       this.offsetOf = () => [0, 0];
+      // the parent's offset during an iteration, so the move from its start to the child's can be drawn
+      this.prevOffsetOf = null;
       const [x0, x1, y0, y1] = G.VIEW;
       canvas.style.aspectRatio = `${x1 - x0} / ${y1 - y0}`;
       new ResizeObserver(() => this.resize()).observe(canvas);
@@ -51,7 +53,10 @@
     }
     spawn(now) {
       const task = G.TASKS[Math.floor(Math.random() * G.TASKS.length)];
-      this.trails.push({ points: G.walkPoints(this.offsetOf(task), task, normal), born: now });
+      const points = G.walkPoints(this.offsetOf(task), task, normal);
+      const end = points[points.length - 1];
+      const hit = Math.hypot(end[0] - task.target[0], end[1] - task.target[1]) <= G.RADIUS;
+      this.trails.push({ points, hit, born: now });
       if (this.trails.length > 60) this.trails.shift();
     }
     tick(now) {
@@ -81,23 +86,20 @@
         ctx.globalAlpha = on ? 1 : 0.7;
         ctx.stroke();
         ctx.setLineDash([]);
-        const [sx, sy] = this.toPx(task.start);
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = pal.ink;
-        ctx.beginPath();
-        ctx.arc(sx, sy, 4, 0, 2 * Math.PI);
-        ctx.fill();
+        ctx.globalAlpha = 0.75;
         ctx.fillStyle = pal.muted;
-        ctx.textAlign = "right";
-        ctx.fillText(`task ${task.id + 1}`, sx - 8, sy + 4);
+        ctx.textAlign = "left";
+        ctx.fillText(pct(G.hitProbability(this.offsetOf(task), task)), tx + G.RADIUS * this.scale + 5, ty + 4);
+        this.drawStart(task, pal, on);
       }
       ctx.lineWidth = 1;
       for (const t of this.trails) {
         const age = now - t.born;
         const shown = reducedMotion ? t.points.length : Math.min(t.points.length, 1 + Math.floor(((t.points.length - 1) * age) / GROW_MS));
         const fade = reducedMotion ? 0.6 : Math.max(0, 1 - Math.max(0, age - GROW_MS) / FADE_MS);
-        ctx.globalAlpha = 0.35 * fade;
-        ctx.strokeStyle = pal.ink;
+        const lit = t.hit && shown === t.points.length;
+        ctx.globalAlpha = (lit ? 0.6 : 0.3) * fade;
+        ctx.strokeStyle = lit ? pal.teal : pal.ink;
         ctx.beginPath();
         for (let i = 0; i < shown; i++) {
           const [x, y] = this.toPx(t.points[i]);
@@ -123,6 +125,69 @@
         }
       }
       ctx.globalAlpha = 1;
+    }
+
+    arrow(from, to, color, alpha, dashed) {
+      const ctx = this.ctx;
+      const [ax, ay] = this.toPx(from);
+      const [bx, by] = this.toPx(to);
+      const len = Math.hypot(bx - ax, by - ay);
+      if (len < 6) return;
+      const [ux, uy] = [(bx - ax) / len, (by - ay) / len];
+      // stop short of the dot at the head
+      const [hx, hy] = [bx - ux * 5, by - uy * 5];
+      const head = 6;
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = ctx.fillStyle = color;
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash(dashed ? [3, 3] : []);
+      ctx.beginPath();
+      ctx.moveTo(ax, ay);
+      ctx.lineTo(hx - ux * head * 0.6, hy - uy * head * 0.6);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(hx, hy);
+      ctx.lineTo(hx - ux * head - uy * head * 0.5, hy - uy * head + ux * head * 0.5);
+      ctx.lineTo(hx - ux * head + uy * head * 0.5, hy - uy * head - ux * head * 0.5);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // the bare task is a ring; the prompt moves the chain's start to the filled dot, and the frozen model
+    // walks the same arc from there, so a better prompt is literally a better place to start
+    drawStart(task, pal, on) {
+      const ctx = this.ctx;
+      const start = G.promptedStart(this.offsetOf(task), task);
+      const [qx, qy] = this.toPx(task.start);
+      ctx.globalAlpha = 0.8;
+      ctx.strokeStyle = pal.muted;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(qx, qy, 3.5, 0, 2 * Math.PI);
+      ctx.stroke();
+      ctx.fillStyle = pal.muted;
+      ctx.textAlign = "right";
+      ctx.fillText(`task ${task.id + 1}`, qx - 8, qy + 4);
+      this.arrow(task.start, start, pal.teal, 0.7, false);
+      if (on && this.prevOffsetOf) {
+        // this iteration's edit: from the parent's start to the child's
+        const before = G.promptedStart(this.prevOffsetOf(task), task);
+        const [bx, by] = this.toPx(before);
+        ctx.globalAlpha = 0.9;
+        ctx.strokeStyle = pal.amber;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(bx, by, 4, 0, 2 * Math.PI);
+        ctx.stroke();
+        this.arrow(before, start, pal.amber, 0.9, true);
+      }
+      const [sx, sy] = this.toPx(start);
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = pal.ink;
+      ctx.beginPath();
+      ctx.arc(sx, sy, 4, 0, 2 * Math.PI);
+      ctx.fill();
     }
   }
 
@@ -172,6 +237,7 @@
       field.marks = [];
       field.highlight = new Set();
       field.offsetOf = (t) => G.promptOffset(current, t);
+      field.prevOffsetOf = null;
       field.trails = [];
       $("#g9-event", panel).innerHTML = `<p class="muted">Press <b>Run one iteration</b>. GEPA will pick a candidate, try it on ${settings.minibatch} task${settings.minibatch > 1 ? "s" : ""}, read the feedback, and rewrite one module.</p>`;
       show(null);
@@ -222,7 +288,9 @@
       while (e.type !== "mutate") e = gepa.iterate();
       log.push(e);
       current = e.accepted ? e.child : gepa.byId(e.parent);
+      const parent = gepa.byId(e.parent);
       field.offsetOf = (t) => G.promptOffset(current, t);
+      field.prevOffsetOf = e.accepted ? (t) => G.promptOffset(parent, t) : null;
       field.trails = [];
       field.highlight = new Set(e.batch);
       field.marks = e.batch.flatMap((id, i) => [{ end: e.parentTraces[i].end }, { end: e.childTraces[i].end, child: true }]);

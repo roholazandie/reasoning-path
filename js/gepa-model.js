@@ -1,4 +1,4 @@
-// pure math for the gepa steps: a frozen model whose behaviour is steered only by a two-module prompt,
+// pure math for the gepa steps: a frozen model whose behaviour is steered only by a two-module prompt that moves where its chains start,
 // a simulated reflector that turns text feedback into prompt edits, pareto selection, merge, and a grpo
 // baseline that trains the same four numbers as weights. no dom, so tools/check-gepa.js can run it.
 (function (root) {
@@ -94,12 +94,19 @@
     return `Wrong. Ended ${parts.join(" and ")}.`;
   }
 
+  // the prompt is part of the context, so it changes where a chain starts, not how the frozen model walks:
+  // the bare task sits at task.start and the prompt moves the start by the offset. the drift is the same
+  // everywhere, so the endpoint moves by the same offset, and endpointMean holds for both readings
+  function promptedStart(offset, task) {
+    return [task.start[0] + offset[0], task.start[1] + offset[1]];
+  }
+
   function walkPoints(offset, task, normal) {
     const sd = Math.sqrt(2 * DIFFUSION * W.DT);
-    const pts = [task.start];
+    const pts = [promptedStart(offset, task)];
     for (let k = 0; k < W.STEPS; k++) {
       const p = pts[k];
-      pts.push([p[0] + W.DRIFT[k][0] + offset[0] * W.DT + sd * normal(), p[1] + W.DRIFT[k][1] + offset[1] * W.DT + sd * normal()]);
+      pts.push([p[0] + W.DRIFT[k][0] + sd * normal(), p[1] + W.DRIFT[k][1] + sd * normal()]);
     }
     return pts;
   }
@@ -402,7 +409,7 @@
 
   const api = {
     TASKS, VIEW, RADIUS, NEEDED, MODULES, BASE_TEXT, ARC, Q0,
-    seededUniform, gaussianFrom, promptOffset, rollout, feedbackText, walkPoints, hitProbability, testSuccess,
+    seededUniform, gaussianFrom, promptOffset, promptedStart, rollout, feedbackText, walkPoints, hitProbability, testSuccess,
     paretoFront, createGepa, runGepa, runGrpo, rolloutsToReach, lineText,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
