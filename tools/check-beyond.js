@@ -7,7 +7,7 @@ const pct = (x) => `${(100 * x).toFixed(0)}%`;
 const f = (x) => (Number.isFinite(x) ? x.toFixed(1) : "-");
 const mean = (a) => a.reduce((s, x) => s + x, 0) / a.length;
 
-// step 11: rl raises pass@1 and lowers pass@k at large k
+// step 12: rl raises pass@1 and lowers pass@k at large k
 const ks = [1, 16, 256];
 const base = { theta: [0, 0], logSigma: Math.log(B.COVERAGE.baseSigma) };
 const trained = B.trainCoverage({}).at(-1);
@@ -20,7 +20,7 @@ const wide = B.passAtK(B.trainCoverage({ beta: 0.3 }).at(-1), ks);
 console.log(`with a narrowing penalty of 0.3: ${wide.map(pct).join(" ")}`);
 assert(wide[2] > pt[2] + 0.4 && wide[0] < pt[0], "a narrowing penalty should trade pass@1 for coverage");
 
-// step 11: process reward learns faster at first, then stalls below the outcome reward
+// step 12: process reward learns faster at first, then stalls below the outcome reward
 {
   const curve = (reward) => {
     const runs = [1, 2, 3, 4].map((seed) => B.trainProcess({ reward, seed }));
@@ -33,7 +33,7 @@ assert(wide[2] > pt[2] + 0.4 && wide[0] < pt[0], "a narrowing penalty should tra
   assert(out[30] > 0.9 && proc[30] < 0.7, "outcome should end near 95% and process stall near 60%");
 }
 
-// step 12: the grpo length bias, averaged like the page (4 runs, last 50 steps)
+// step 13: the grpo length bias, averaged like the page (4 runs, last 50 steps)
 const tail = (runs, key) => {
   const per = runs[0].history.map((_, i) => mean(runs.map((r) => r.history[i][key]).filter(Number.isFinite)));
   return mean(per.slice(-50).filter(Number.isFinite));
@@ -53,7 +53,7 @@ const hi = Object.fromEntries(["reinforce", "grpo", "ppo"].map((a) => [a, tail(r
 console.log(`success at learning rate 0.1: reinforce ${pct(hi.reinforce)}, grpo ${pct(hi.grpo)}, ppo ${pct(hi.ppo)}`);
 assert(hi.ppo > 2 * hi.reinforce && hi.ppo > 2 * hi.grpo, "ppo-clip should hold up best at a high learning rate");
 
-// step 12: best-of-n against rl at the same kl
+// step 13: best-of-n against rl at the same kl
 const model = R.fitRewardModel(R.collectPairs(200, 1));
 const ref0 = R.evaluate(R.refPolicy(), model, 4000).utility;
 const rlPeak = Math.max(...R.betaSweep(model).map((s) => s.utility - ref0));
@@ -79,7 +79,7 @@ console.log(`true gain: rl peak ${f(rlPeak)}, best-of-64 ${f(b64)}, best-of-4096
 assert(b64 > rlPeak && b4096 < b64 - 0.3, "best-of-n should beat rl's peak and then overoptimize");
 console.log("ok");
 
-// step 12: chains grow during training
+// step 13: chains grow during training
 {
   const lenAt = (algorithm) => {
     const runs = [1, 2, 3, 4].map((seed) => B.trainLength({ algorithm, seed }).history);
@@ -88,6 +88,6 @@ console.log("ok");
   const lr0 = lenAt("reinforce");
   const lp = lenAt("ppo");
   console.log(`mean chain length after training: reinforce ${f(lr0)}, ppo ${f(lp)}`);
-  assert(Math.abs(lr0 - 44) < 1 && Math.abs(lp - 47) < 1, "step 12 quotes about 44 and 47 steps");
+  assert(Math.abs(lr0 - 44) < 1 && Math.abs(lp - 47) < 1, "step 13 quotes about 44 and 47 steps");
   console.log("length growth ok");
 }

@@ -1,4 +1,4 @@
-// panels for steps 9 and 10: one gepa iteration at a time, then the candidate pool and gepa vs grpo.
+// panels for steps 10 and 11: one gepa iteration at a time, then the candidate pool and gepa vs grpo.
 // the math lives in gepa-model.js; this file only draws and wires controls.
 (function () {
   "use strict";
@@ -206,7 +206,7 @@
     }).join("");
   }
 
-  // ---------- shared settings, set by step 9's controls ----------
+  // ---------- shared settings, set by step 10's controls ----------
 
   const settings = { quality: G.Q0, feedback: "text", minibatch: 3, paretoSamples: 4 };
   const settingListeners = [];
@@ -222,7 +222,7 @@
   }
   const isDefault = () => settings.quality === G.Q0 && settings.feedback === "text" && settings.minibatch === 3 && settings.paretoSamples === 4;
 
-  // ---------- step 9: one iteration at a time ----------
+  // ---------- step 10: one iteration at a time ----------
 
   function mountStep9(panel) {
     const field = new TaskField($("#gepa-field", panel));
@@ -313,7 +313,7 @@
     return { tick: (now) => { if (!reducedMotion) field.tick(now); } };
   }
 
-  // ---------- step 10: pareto pool and gepa vs grpo ----------
+  // ---------- step 11: pareto pool and gepa vs grpo ----------
 
   const GEPA_BUDGET = 6000;
   const GRPO_BUDGET = 24000;
@@ -374,7 +374,7 @@
     });
     settingListeners.push(() => {
       resetPool();
-      $("#g10-settings", panel).textContent = isDefault() ? "default settings" : "step 9's changed settings";
+      $("#g10-settings", panel).textContent = isDefault() ? "default settings" : "step 10's changed settings";
     });
 
     function compute(force) {
@@ -417,7 +417,7 @@
       const fmt = (x) => (Number.isFinite(x) ? x.toLocaleString("en-US") : "more than the budget");
       const which = computedFor === JSON.stringify({ quality: G.Q0, feedback: "text", minibatch: 3, paretoSamples: 4 })
         ? "default settings"
-        : `step 9's settings (quality ${settings.quality.toFixed(2)}, text feedback ${settings.feedback === "text" ? "on" : "off"}, minibatch ${settings.minibatch}, ${settings.paretoSamples} samples per task)`;
+        : `step 10's settings (quality ${settings.quality.toFixed(2)}, text feedback ${settings.feedback === "text" ? "on" : "off"}, minibatch ${settings.minibatch}, ${settings.paretoSamples} samples per task)`;
       status.innerHTML = `With ${which}. Median rollouts to reach ${pct(level)} success (85% of the best possible), over ${SEEDS.length} runs each: ` +
         `<b>GEPA ${fmt(med("gepa"))}</b>, <b>GRPO ${fmt(med("grpo"))}</b>, without merge ${fmt(med("nomerge"))}, greedy ${fmt(med("greedy"))}, random edits ${fmt(med("random"))}.`;
     }

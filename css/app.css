@@ -325,3 +325,38 @@ ul.algos li { margin-bottom: 3px; }
 select { font: 13.5px var(--sans); color: var(--ink); background: var(--paper); border: 1px solid var(--line-strong); border-radius: 6px; padding: 4px 6px; }
 .field.tall-field canvas { max-width: 440px; margin: 0 auto; }
 .narrow-chart { max-width: 640px; margin-top: 18px; }
+
+/* real token paths (step 2) */
+#tokens .controls { margin: 0 0 10px; }
+#tokens .seg { flex-wrap: wrap; }
+#tokens .seg button + button { border-left: 0; }
+.question { font: italic 16px/1.45 var(--serif); margin: 0 0 10px; color: var(--ink); max-width: 64ch; }
+.token-text {
+  font: 13.5px/1.75 var(--sans);
+  white-space: pre-wrap;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin: 12px 0 8px;
+  max-height: 11em;
+  overflow-y: auto;
+}
+.tok {
+  /* the tint grows as the token gets less likely */
+  background: color-mix(in srgb, var(--amber) calc(var(--doubt, 0) * 55%), transparent);
+  border-radius: 2px;
+  outline: none;
+}
+.tok:hover, .tok:focus { box-shadow: 0 0 0 1px var(--ink); }
+.tok.fork { text-decoration: underline dashed var(--ink); text-underline-offset: 3px; }
+.tok.alt { color: var(--teal); }
+button.whatif { margin-top: 10px; text-align: left; }
+b.lands { color: var(--red); }
+.hist { display: grid; gap: 4px; font: 13px var(--sans); }
+.hbar { display: grid; grid-template-columns: 7.5em 1fr 2.6em; align-items: center; gap: 8px; }
+.hbar span { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hbar i { display: block; height: 8px; border-radius: 0 4px 4px 0; background: var(--slate); opacity: .7; }
+.hbar.correct span { color: var(--ink); font-weight: 600; }
+.hbar.correct i { background: var(--red); opacity: 1; }
+.hbar b { text-align: right; font-variant-numeric: tabular-nums; }

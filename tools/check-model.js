@@ -73,7 +73,7 @@ console.log("ok");
     return M.successRate(v, v.prompts[0], M.train(v, true)[M.ROUNDS], true, "wrong");
   };
   console.log(`wrong answers, region length 0.4 / 0.6: ${pct(ellipse(0.4))} / ${pct(ellipse(0.6))}`);
-  assert(Math.abs(ellipse(0.4) - 0.68) < 0.01 && Math.abs(ellipse(0.6) - 0.38) < 0.01, "step 3 quotes 68% and 38%");
+  assert(Math.abs(ellipse(0.4) - 0.68) < 0.01 && Math.abs(ellipse(0.6) - 0.38) < 0.01, "step 4 quotes 68% and 38%");
   console.log("sliders ok");
 }
 

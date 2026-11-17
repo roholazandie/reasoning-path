@@ -42,7 +42,7 @@ assert(grpo.every((r) => r.history.at(-1).test > 0.75), "grpo should get there e
 assert(merges.filter((m) => m > 0).length >= SEEDS.length / 2, "merge should be accepted in most runs");
 console.log("ok");
 
-// step 9 quotes these effects of its controls
+// step 10 quotes these effects of its controls
 {
   const run = (opt) => median(SEEDS.map((seed) => G.rolloutsToReach(G.runGepa({ merge: true, ...opt, seed }, GEPA_BUDGET).history, level)));
   const q = [0, 0.35, 0.7, 1].map((quality) => run({ quality }));

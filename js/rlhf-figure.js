@@ -26,7 +26,7 @@
     store.version++;
     store.listeners.forEach((f) => f());
   }
-  // how strictly simulated labelers follow the hidden utility; step 4's slider sets it for new labels
+  // how strictly simulated labelers follow the hidden utility; step 5's slider sets it for new labels
   const labeler = { noise: 1 };
   function autoPairs(n, policy = R.refPolicy()) {
     return Array.from({ length: n }, () => {
@@ -769,7 +769,7 @@
     const defBeta = $("#def-beta", panel);
     defBeta.value = sliderOf(0.1);
     const utilityOn = () => showUtility.checked;
-    // recomputed when the hidden utility moves (step 4 lets the reader drag its peak)
+    // recomputed when the hidden utility moves (step 5 lets the reader drag its peak)
     let refUtility = R.evaluate(R.refPolicy(), null, 1000).utility;
     let seenVersion = store.version;
     const pe = (policy) => {

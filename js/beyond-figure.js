@@ -1,4 +1,4 @@
-// panels for steps 11 and 12: pass@k coverage, process vs outcome reward, rl algorithms with a learnable
+// panels for steps 12 and 13: pass@k coverage, process vs outcome reward, rl algorithms with a learnable
 // length, and best-of-n against rl at equal kl. the math lives in beyond-model.js and rlhf-model.js.
 (function () {
   "use strict";

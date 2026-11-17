@@ -1,4 +1,4 @@
-// pure math for steps 11 and 12: what rl can add (pass@k coverage, process vs outcome reward) and how
+// pure math for steps 12 and 13: what rl can add (pass@k coverage, process vs outcome reward) and how
 // the common rl algorithms differ (reinforce, rloo, grpo, dr. grpo, ppo-clip). no dom, so tools/check-beyond.js runs it.
 (function (root) {
   "use strict";

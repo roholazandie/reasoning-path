@@ -31,7 +31,7 @@ assert(rlvr.pass > 0.8, "rlvr should learn to land in the verifier region");
 
 console.log("ok");
 
-// step 8 uses these exact seeds, so these checks cover what the page claims
+// step 9 uses these exact seeds, so these checks cover what the page claims
 const HACK_SEED = 7;
 const refU = R.evaluate(R.refPolicy(), null, 1000).utility;
 const outcome = (policy) => ({
@@ -67,12 +67,12 @@ for (const [name, d] of [["bias 0", d0], ["bias 2", d2], ["bias 5", d5]]) {
   console.log(`${name}: plain ${f(d.plain.gain)} ensemble ${f(d.ensemble.gain)} iterated ${f(d.iterated.gain)}`);
 }
 const near = (x, y) => Math.abs(x - y) < 0.02;
-assert(near(d0.plain.gain, -0.59) && near(d0.ensemble.gain, 0.65) && near(d0.iterated.gain, 0.93), "step 8 quotes -0.59, 0.65 and 0.93 at bias 0");
-assert(near(d2.ensemble.gain, -0.48) && near(d2.iterated.gain, 0.56), "step 8 quotes -0.48 and 0.56 at bias 2");
-assert(near(d5.iterated.gain, -0.74), "step 8 quotes -0.74 at bias 5");
+assert(near(d0.plain.gain, -0.59) && near(d0.ensemble.gain, 0.65) && near(d0.iterated.gain, 0.93), "step 9 quotes -0.59, 0.65 and 0.93 at bias 0");
+assert(near(d2.ensemble.gain, -0.48) && near(d2.iterated.gain, 0.56), "step 9 quotes -0.48 and 0.56 at bias 2");
+assert(near(d5.iterated.gain, -0.74), "step 9 quotes -0.74 at bias 5");
 console.log("step 8 ok");
 
-// step 6 quotes these numbers about how much dpo depends on the label set
+// step 7 quotes these numbers about how much dpo depends on the label set
 {
   const rows = [];
   for (let seed = 10; seed < 30; seed++) {
@@ -85,12 +85,12 @@ console.log("step 8 ok");
   const avg = (k) => rows.reduce((s, r) => s + r[k], 0) / rows.length;
   const spreads = rows.map((r) => r.spread);
   console.log(`dpo over 20 label sets: spread ${f(Math.min(...spreads))}-${f(Math.max(...spreads))}, gain ${f(avg("dpo"))} vs rlhf ${f(avg("rl"))}`);
-  assert(Math.abs(Math.min(...spreads) - 0.75) < 0.03 && Math.abs(Math.max(...spreads) - 1.55) < 0.03, "step 6 quotes a 75% to 155% spread range");
-  assert(Math.abs(avg("dpo") - 0.82) < 0.02 && Math.abs(avg("rl") - 1.0) < 0.02, "step 6 quotes gains of 0.82 and 1.00");
+  assert(Math.abs(Math.min(...spreads) - 0.75) < 0.03 && Math.abs(Math.max(...spreads) - 1.55) < 0.03, "step 7 quotes a 75% to 155% spread range");
+  assert(Math.abs(avg("dpo") - 0.82) < 0.02 && Math.abs(avg("rl") - 1.0) < 0.02, "step 7 quotes gains of 0.82 and 1.00");
   console.log("step 6 ok");
 }
 
-// step 5 says three or four rounds of labelling from the policy bring a runaway policy back
+// step 6 says three or four rounds of labelling from the policy bring a runaway policy back
 {
   let pairs = R.collectPairs(200, 1);
   let model = R.fitRewardModel(pairs);
@@ -108,7 +108,7 @@ console.log("step 8 ok");
   console.log("step 5 ok");
 }
 
-// step 7 says a verifier radius of 0.10 or less gives rlvr almost no passing samples to learn from
+// step 8 says a verifier radius of 0.10 or less gives rlvr almost no passing samples to learn from
 {
   const passAt = (r) => {
     R.VERIFIER.r = r;
@@ -122,7 +122,7 @@ console.log("step 8 ok");
   console.log("step 7 ok");
 }
 
-// step 4 ai labeler and step 6 ipo against dpo
+// step 5 ai labeler and step 6 ipo against dpo
 {
   const held2 = R.collectPairs(500, 2);
   const ref2 = R.evaluate(R.refPolicy(), null, 2000).utility;
@@ -141,10 +141,10 @@ console.log("step 8 ok");
   const ipo1 = klOf(R.ipoTrainer({ pairs: R.collectPairs(200, 1, { noise: 1 }), tau: 0.3 }), 600);
   const ipo01 = klOf(R.ipoTrainer({ pairs: R.collectPairs(200, 1, { noise: 0.25 }), tau: 0.3 }), 600);
   console.log(`kl, labeler noise 1 / 0.25: dpo ${f(dpo1)} / ${f(dpo01)}, ipo ${f(ipo1)} / ${f(ipo01)}`);
-  assert(Math.abs(dpo1 - 1.8) < 0.1 && Math.abs(dpo01 - 2.8) < 0.1, "step 6 quotes dpo kl 1.8 to 2.8");
-  assert(Math.abs(ipo1 - 0.09) < 0.02 && Math.abs(ipo01 - 0.2) < 0.02, "step 6 quotes ipo kl 0.09 to 0.20");
+  assert(Math.abs(dpo1 - 1.8) < 0.1 && Math.abs(dpo01 - 2.8) < 0.1, "step 7 quotes dpo kl 1.8 to 2.8");
+  assert(Math.abs(ipo1 - 0.09) < 0.02 && Math.abs(ipo01 - 0.2) < 0.02, "step 7 quotes ipo kl 0.09 to 0.20");
 
-  // step 4 quotes the 4x-noise accuracy as an average over label sets, since single sets swing widely
+  // step 5 quotes the 4x-noise accuracy as an average over label sets, since single sets swing widely
   const accAt = (noise) => {
     let s = 0;
     for (let seed = 1; seed <= 100; seed++) s += R.pairAccuracy(R.fitRewardModel(R.collectPairs(50, seed * 31, { noise })), held2);
@@ -153,6 +153,6 @@ console.log("step 8 ok");
   const a025 = accAt(0.25);
   const a4 = accAt(4);
   console.log(`accuracy with 50 labels, averaged over 100 sets: noise 0.25 ${f(a025)}, noise 4 ${f(a4)}`);
-  assert(Math.abs(a025 - 0.91) < 0.02 && Math.abs(a4 - 0.7) < 0.03, "step 4 quotes about 91% and about 70%");
+  assert(Math.abs(a025 - 0.91) < 0.02 && Math.abs(a4 - 0.7) < 0.03, "step 5 quotes about 91% and about 70%");
   console.log("step 4 and 6 good fits ok");
 }

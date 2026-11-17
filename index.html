@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css?v=32">
+<link rel="stylesheet" href="css/app.css?v=38">
 </head>
 <body>
 <div class="shell">
@@ -19,26 +19,27 @@
     <div class="group-name" id="g1">Verifiable reward</div>
     <div role="tablist" aria-labelledby="g1" aria-orientation="vertical" class="tablist">
       <button role="tab" id="t-paths" aria-controls="paths"><span class="n">1</span><span>Paths and best-of-k</span></button>
-      <button role="tab" id="t-amortize" aria-controls="amortize"><span class="n">2</span><span>Training and generalization</span></button>
-      <button role="tab" id="t-hacking" aria-controls="hacking"><span class="n">3</span><span>An imperfect verifier</span></button>
+      <button role="tab" id="t-tokens" aria-controls="tokens"><span class="n">2</span><span>Real token paths</span></button>
+      <button role="tab" id="t-amortize" aria-controls="amortize"><span class="n">3</span><span>Training and generalization</span></button>
+      <button role="tab" id="t-hacking" aria-controls="hacking"><span class="n">4</span><span>An imperfect verifier</span></button>
     </div>
     <div class="group-name" id="g2">Human feedback</div>
     <div role="tablist" aria-labelledby="g2" aria-orientation="vertical" class="tablist">
-      <button role="tab" id="t-prefs" aria-controls="prefs"><span class="n">4</span><span>Preferences and the reward model</span></button>
-      <button role="tab" id="t-rl" aria-controls="rl"><span class="n">5</span><span>RL with a KL leash</span></button>
-      <button role="tab" id="t-dpo" aria-controls="dpo"><span class="n">6</span><span>DPO: skip the reward model</span></button>
-      <button role="tab" id="t-rlvr" aria-controls="rlvr"><span class="n">7</span><span>Verifier vs human feedback</span></button>
-      <button role="tab" id="t-hacking-rlhf" aria-controls="hacking-rlhf"><span class="n">8</span><span>Reward hacking and defenses</span></button>
+      <button role="tab" id="t-prefs" aria-controls="prefs"><span class="n">5</span><span>Preferences and the reward model</span></button>
+      <button role="tab" id="t-rl" aria-controls="rl"><span class="n">6</span><span>RL with a KL leash</span></button>
+      <button role="tab" id="t-dpo" aria-controls="dpo"><span class="n">7</span><span>DPO: skip the reward model</span></button>
+      <button role="tab" id="t-rlvr" aria-controls="rlvr"><span class="n">8</span><span>Verifier vs human feedback</span></button>
+      <button role="tab" id="t-hacking-rlhf" aria-controls="hacking-rlhf"><span class="n">9</span><span>Reward hacking and defenses</span></button>
     </div>
     <div class="group-name" id="g3">Prompt optimization</div>
     <div role="tablist" aria-labelledby="g3" aria-orientation="vertical" class="tablist">
-      <button role="tab" id="t-gepa-loop" aria-controls="gepa-loop"><span class="n">9</span><span>GEPA: reflective prompt evolution</span></button>
-      <button role="tab" id="t-gepa-search" aria-controls="gepa-search"><span class="n">10</span><span>Pareto search vs RL</span></button>
+      <button role="tab" id="t-gepa-loop" aria-controls="gepa-loop"><span class="n">10</span><span>GEPA: reflective prompt evolution</span></button>
+      <button role="tab" id="t-gepa-search" aria-controls="gepa-search"><span class="n">11</span><span>Pareto search vs RL</span></button>
     </div>
     <div class="group-name" id="g4">Beyond the basics</div>
     <div role="tablist" aria-labelledby="g4" aria-orientation="vertical" class="tablist">
-      <button role="tab" id="t-beyond-limits" aria-controls="beyond-limits"><span class="n">11</span><span>What RL can and cannot add</span></button>
-      <button role="tab" id="t-beyond-algorithms" aria-controls="beyond-algorithms"><span class="n">12</span><span>RL algorithms and best-of-N</span></button>
+      <button role="tab" id="t-beyond-limits" aria-controls="beyond-limits"><span class="n">12</span><span>What RL can and cannot add</span></button>
+      <button role="tab" id="t-beyond-algorithms" aria-controls="beyond-algorithms"><span class="n">13</span><span>RL algorithms and best-of-N</span></button>
     </div>
   </nav>
 
@@ -87,13 +88,66 @@
           <p class="note">More noise spreads the walks: a little helps them reach a target the drift misses, too much scatters them.</p>
         </aside>
       </div>
-      <button class="next" data-next type="button">Next: training</button>
+      <button class="next" data-next type="button">Next: real token paths</button>
     </section>
 
     <!-- 2 -->
-    <section role="tabpanel" id="amortize" aria-labelledby="t-amortize" hidden>
+    <section role="tabpanel" id="tokens" aria-labelledby="t-tokens" hidden>
       <header class="head">
         <span class="step">2</span>
+        <div>
+          <h1>Real token paths</h1>
+          <p class="lede">The same picture with a real language model. Each path is one sampled answer, written token by token. Paths that share their first tokens share a branch, and each one ends at the answer it gives.</p>
+        </div>
+      </header>
+      <div class="bench">
+        <figure class="field">
+          <div class="controls"><div class="seg" role="group" aria-label="Prompt">
+            <button type="button" data-prompt="strawberry">r's in strawberry</button>
+            <button type="button" data-prompt="multiply">37 × 48</button>
+            <button type="button" data-prompt="sheep">17 sheep</button>
+            <button type="button" data-prompt="square">7² + 8² + 9²</button>
+            <button type="button" data-prompt="widgets">100 machines</button>
+          </div></div>
+          <p class="question" id="tk-question"></p>
+          <canvas aria-label="Sixteen sampled answers from a language model drawn as a branching tree. Each branch ends at the answer it gives; the correct answer sits inside a dashed circle."></canvas>
+          <div class="token-text" id="tk-text" aria-live="polite"></div>
+          <div class="status" id="tk-path"></div>
+          <div class="note" id="tk-token"></div>
+          <button type="button" id="tk-whatif" class="whatif" hidden></button>
+          <figcaption>Sixteen of the samples, drawn as a tree. A branch gets wider when more paths share it and redder when more of them land. The token axis is stretched near the start, where most paths split. Point at a path to trace it, and click it to read it. In the text, a deeper tint marks a less likely token.</figcaption>
+        </figure>
+        <aside class="side">
+          <div class="formula">p<sub>x</sub> = Σ<sub>z : y(z) ∈ 𝒮<sub>x</sub></sub> π(z | x)</div>
+          <p>Here <i>x</i> is a real question and π is <span id="tk-model">a local model</span>. A path <i>z</i> is the whole answer, and the verifier reads the number after "Answer:". About <b id="tk-p">–</b> of the paths land.</p>
+          <div class="readouts">
+            <div><span>Samples that land</span><b id="tk-est">–</b></div>
+            <div><span>Of the 16 drawn</span><b id="tk-tree">–</b></div>
+            <div><span>Most likely path drawn, π(z | x)</span><b id="tk-best">–</b></div>
+          </div>
+          <p>Each token has a probability, and a path's probability is their product. A short, formulaic answer can be fairly likely: the top sheep path has about 19%. But the paths that land are many different texts, most of them rare, and the sum in <i>p<sub>x</sub></i> runs over all of them. You cannot list them, so you estimate <i>p<sub>x</sub></i> by sampling, as the toy did.</p>
+          <div class="chart-box"><div class="chart-title">Answers given by the 400 samples</div><div id="tk-hist" class="hist"></div></div>
+          <div class="control">
+            <label for="tk-k">Samples <i>k</i> = <output id="tk-k-out">8</output></label>
+            <input type="range" id="tk-k" min="1" max="32" value="8">
+          </div>
+          <div class="readouts">
+            <div><span>Best-of-k success, with a verifier</span><b id="tk-bok">–</b></div>
+            <div><span>Majority vote, no verifier</span><b id="tk-vote">–</b></div>
+          </div>
+          <p>The strawberry question shows why a verifier matters. The model most often answers 2, so a majority vote locks onto the wrong answer as <i>k</i> grows. With a verifier, any one of the <i>k</i> samples that lands is enough.</p>
+          <p class="note">The verifier is strict. The most likely sheep path, "The farmer has 9 sheep left.", has the right number but no "Answer:" line, so it misses. A verifier checks the format as well as the answer, and a policy trained against it learns both.</p>
+          <p class="note">The "what if" button forces the model's next most likely token at the point where the path was least sure, then samples a new ending from there. One token can turn a miss into a hit, or a hit into a miss.</p>
+          <p class="note">Model: Qwen2.5-7B, the base model (Qwen team 2024), run locally. Every probability shown is from the model at temperature 0.7, the same policy that drew the samples. Each path stops after its first answer. A sample with no answer misses, and in the vote it abstains. The best-of-k line uses 1 − (1 − p<sub>x</sub>)<sup>k</sup> with the estimate above. The vote resamples the 400 answers. Built by <code>tools/build-token-tree.py</code>, after fch21's Token Path Explorer.</p>
+        </aside>
+      </div>
+      <button class="next" data-next type="button">Next: training</button>
+    </section>
+
+    <!-- 3 -->
+    <section role="tabpanel" id="amortize" aria-labelledby="t-amortize" hidden>
+      <header class="head">
+        <span class="step">3</span>
         <div>
           <h1>Training and generalization</h1>
           <p class="lede">Training changes the model so that one sample lands more often. Sample paths from every training prompt, keep the ones that land, and fine-tune on them. Then repeat.</p>
@@ -138,10 +192,10 @@
       <button class="next" data-next type="button">Next: an imperfect verifier</button>
     </section>
 
-    <!-- 3 -->
+    <!-- 4 -->
     <section role="tabpanel" id="hacking" aria-labelledby="t-hacking" hidden>
       <header class="head">
-        <span class="step">3</span>
+        <span class="step">4</span>
         <div>
           <h1>An imperfect verifier</h1>
           <p class="lede">The reward is only as good as the verifier. If the verifier accepts some wrong answers, training finds them, especially when they are easier to reach than the right ones.</p>
@@ -175,17 +229,17 @@
           <p>Turn off the imperfect verifier. The same training now lands on the correct answers.</p>
           <p>Reshape the verifier's region and watch the two rates under the figure. Training learns to hit whatever part of the region is easiest to reach. With the default shape, 68% of walks end on wrong answers. Lengthen the region to 0.6 and it covers more of the correct circle: wrong answers fall to 38%.</p>
           <p><b>Reward hacking needs two things:</b> a reward that is wrong somewhere, and a sampler that explores enough to find that place. More samples and longer RL make finding that place more likely.</p>
-          <p class="note">Step 5 shows the same failure with a reward that people teach, not a program.</p>
+          <p class="note">Step 6 shows the same failure with a reward that people teach, not a program.</p>
           <p class="note">A warning from the other direction: Shao et al. (2025) found that random rewards raised Qwen2.5-Math-7B by 21.4 points on MATH-500, close to the 29.1 points of true rewards. It mostly did not work for Llama3 or OLMo2, and they trace it to GRPO's clipping amplifying habits the model already had. A gain after RL is not proof that the reward taught anything. This toy has no such pretrained habits, so it cannot show the effect.</p>
         </aside>
       </div>
       <button class="next" data-next type="button">Next: human feedback</button>
     </section>
 
-    <!-- 4 -->
+    <!-- 5 -->
     <section role="tabpanel" id="prefs" aria-labelledby="t-prefs" hidden>
       <header class="head">
-        <span class="step">4</span>
+        <span class="step">5</span>
         <div>
           <h1>Preferences and the reward model</h1>
           <p class="lede">Many tasks have no verifier: "be helpful" has no answer key. RLHF asks people to compare two answers, then trains a reward model to predict their choice.</p>
@@ -213,8 +267,8 @@
             <label for="prefs-noise">Labeler noise = <output id="prefs-noise-out">1×</output></label>
             <input type="range" id="prefs-noise" min="0.25" max="4" step="0.25" value="1">
           </div>
-          <p class="note">The simulated labeler picks A with probability σ((u(A) − u(B)) / noise). The setting applies to new auto labels. With 50 labels, accuracy falls from about 91% at 0.25× to about 70% on average at 4×, with large swings from one set of labels to the next. Very precise labels also make the reward model steeper, so the same β pushes the policy further in step 5.</p>
-          <p class="note"><b>AI labeler</b> (RLAIF, Lee et al. 2023): a model labels the pairs instead of people. It is cheap and consistent, and Lee et al. found it comparable to RLHF. But it has its own taste: here it also likes answers further up. Clear the labels and press the AI button four times (200 labels): the reward model still ranks about 92% of held-out pairs like the hidden utility, yet in step 5 RL usually lands far above the peak and the true utility gets worse. More AI labels do not fix it, because the taste is in every label.</p>
+          <p class="note">The simulated labeler picks A with probability σ((u(A) − u(B)) / noise). The setting applies to new auto labels. With 50 labels, accuracy falls from about 91% at 0.25× to about 70% on average at 4×, with large swings from one set of labels to the next. Very precise labels also make the reward model steeper, so the same β pushes the policy further in step 6.</p>
+          <p class="note"><b>AI labeler</b> (RLAIF, Lee et al. 2023): a model labels the pairs instead of people. It is cheap and consistent, and Lee et al. found it comparable to RLHF. But it has its own taste: here it also likes answers further up. Clear the labels and press the AI button four times (200 labels): the reward model still ranks about 92% of held-out pairs like the hidden utility, yet in step 6 RL usually lands far above the peak and the true utility gets worse. More AI labels do not fix it, because the taste is in every label.</p>
           <p class="note">With <b>Show hidden utility</b> on, drag the peak of the dotted circles to change what people want.</p>
           <p class="note" id="prefs-moved" hidden>The peak moved. Labels made before the move still follow the old peak; clear them and label again to follow the new one.</p>
           <div class="readouts">
@@ -230,10 +284,10 @@
       <button class="next" data-next type="button">Next: RL on the reward model</button>
     </section>
 
-    <!-- 5 -->
+    <!-- 6 -->
     <section role="tabpanel" id="rl" aria-labelledby="t-rl" hidden>
       <header class="head">
-        <span class="step">5</span>
+        <span class="step">6</span>
         <div>
           <h1>RL with a KL leash</h1>
           <p class="lede">Now train the policy to score high on the reward model, with a penalty for moving far from the base model. The penalty strength is β.</p>
@@ -242,7 +296,7 @@
       <div class="empty" data-needs-labels hidden>
         <p>The reward model needs preferences first.</p>
         <button type="button" class="primary" data-act="auto-200">Auto-label 200 pairs</button>
-        <a href="#prefs">or label them yourself in step 4</a>
+        <a href="#prefs">or label them yourself in step 5</a>
       </div>
       <div class="bench">
         <figure class="field">
@@ -285,8 +339,8 @@
           <div class="chart-box"><div class="chart-title">Gain over the base model</div><div id="rl-chart-gain" class="chart-host"></div></div>
           <div class="chart-box"><div class="chart-title">KL to base model</div><div id="rl-chart-kl" class="chart-host short"></div></div>
           <p class="note"><b>Answers per step and learning rate.</b> With the Adam optimizer, small batches mostly slow training. Push the learning rate to about 0.4 with 8 answers per step and the updates overshoot: KL jumps past 10 before it settles. PPO's clipping exists to stop jumps like this.</p>
-          <p class="note"><b>Label pairs from this policy</b> adds labels where the policy is now, not where the base model was, and refits the reward model without restarting RL. Try it at β = 0.05 after the policy runs off: label, train 300 more, and repeat. Each batch of labels flattens the slope where the policy went. After three or four rounds the policy is back near the best answers. Step 8 turns this into iterated RLHF.</p>
-          <p class="note">This reward model is a straight slope, so it gives no reason to change the spread. Only the center moves. Compare step 7, where a 0/1 reward makes the policy narrow.</p>
+          <p class="note"><b>Label pairs from this policy</b> adds labels where the policy is now, not where the base model was, and refits the reward model without restarting RL. Try it at β = 0.05 after the policy runs off: label, train 300 more, and repeat. Each batch of labels flattens the slope where the policy went. After three or four rounds the policy is back near the best answers. Step 9 turns this into iterated RLHF.</p>
+          <p class="note">This reward model is a straight slope, so it gives no reason to change the spread. Only the center moves. Compare step 8, where a 0/1 reward makes the policy narrow.</p>
         </aside>
       </div>
 
@@ -297,17 +351,17 @@
         </div>
         <aside class="side">
           <p>The reward model is a <b>proxy</b>. Lower β lets the policy chase the proxy further from the data it learned from. The proxy keeps rising. The true utility rises, peaks, and then falls. This is Goodhart's law, measured by Gao et al. (2022).</p>
-          <p id="sweep-status" class="status">Label pairs in step 4 to compute the sweep.</p>
+          <p id="sweep-status" class="status">Label pairs in step 5 to compute the sweep.</p>
           <p class="note">Each point is a full RLHF run at one β. Lower β pushes the policy further along the slope. At very low β, the policy leaves the plot. Try 50 labels and then 600: more labels make the slope more accurate, but they do not remove the turn.</p>
         </aside>
       </div>
       <button class="next" data-next type="button">Next: DPO</button>
     </section>
 
-    <!-- 6 -->
+    <!-- 7 -->
     <section role="tabpanel" id="dpo" aria-labelledby="t-dpo" hidden>
       <header class="head">
-        <span class="step">6</span>
+        <span class="step">7</span>
         <div>
           <h1>DPO: skip the reward model</h1>
           <p class="lede">The KL-regularized objective has a closed-form best policy: π*(y) ∝ π<sub>ref</sub>(y) exp(r(y)/β). DPO turns that around and fits the policy straight to the preference pairs.</p>
@@ -316,7 +370,7 @@
       <div class="empty" data-needs-labels hidden>
         <p>DPO and RLHF both need preferences first.</p>
         <button type="button" class="primary" data-act="auto-200">Auto-label 200 pairs</button>
-        <a href="#prefs">or label them yourself in step 4</a>
+        <a href="#prefs">or label them yourself in step 5</a>
       </div>
       <div class="trio">
         <figure class="field">
@@ -355,10 +409,10 @@
       <div class="bench wide">
         <div class="formula big">ℒ<sub>DPO</sub> = −𝔼 log σ( β log <span class="frac">π<sub>θ</sub>(y<sub>w</sub>) / π<sub>ref</sub>(y<sub>w</sub>)</span> − β log <span class="frac">π<sub>θ</sub>(y<sub>l</sub>) / π<sub>ref</sub>(y<sub>l</sub>)</span> )</div>
         <aside class="side">
-          <p>This is the Bradley–Terry loss from step 4, with the reward written as β log π<sub>θ</sub>/π<sub>ref</sub>. The policy <b>is</b> the reward model, so no sampling and no RL loop are needed.</p>
+          <p>This is the Bradley–Terry loss from step 5, with the reward written as β log π<sub>θ</sub>/π<sub>ref</sub>. The policy <b>is</b> the reward model, so no sampling and no RL loop are needed.</p>
           <p>Both methods learn only from the pairs. RLHF then samples answers from its own policy and trusts the reward model's extrapolation there; DPO never samples at all, so it only reshapes probability around the labelled answers.</p>
           <p><b>IPO</b> (Azar et al. 2023) points at a flaw in DPO: its loss keeps falling as the gap between winner and loser grows, with no finite minimum, so when preferences are certain it keeps pushing the loser's probability toward zero and the KL term stops mattering. IPO instead fits each pair's log-ratio gap to a fixed target, 1/(2τ). In this toy, DPO can keep pushing by narrowing its spread, and only a floor on the spread (0.02) stops it. With near-certain labels (labeler noise 0.25×), DPO's KL rises from 1.8 to 2.8, while IPO's stays near the base model (0.09 to 0.20). τ and β are not on the same scale, so use the sliders to compare at equal KL.</p>
-          <p class="note">DPO also depends more on which pairs you happened to label. Over 20 sets of 200 labels at β = 0.3, its spread ranged from 75% to 155% of the base model's, and its true utility gain averaged 0.82, against 1.00 for RLHF. Collect a new set of labels in step 4 and retrain to see it move.</p>
+          <p class="note">DPO also depends more on which pairs you happened to label. Over 20 sets of 200 labels at β = 0.3, its spread ranged from 75% to 155% of the base model's, and its true utility gain averaged 0.82, against 1.00 for RLHF. Collect a new set of labels in step 5 and retrain to see it move.</p>
         </aside>
       </div>
       <div class="table-wrap">
@@ -375,19 +429,19 @@
       <button class="next" data-next type="button">Next: verifier vs human feedback</button>
     </section>
 
-    <!-- 7 -->
+    <!-- 8 -->
     <section role="tabpanel" id="rlvr" aria-labelledby="t-rlvr" hidden>
       <header class="head">
-        <span class="step">7</span>
+        <span class="step">8</span>
         <div>
           <h1>Verifier vs human feedback</h1>
-          <p class="lede">The same REINFORCE loop, with two kinds of reward. On the left, a program checks the answer and returns pass or fail. On the right, the reward model from step 4 returns a score.</p>
+          <p class="lede">The same REINFORCE loop, with two kinds of reward. On the left, a program checks the answer and returns pass or fail. On the right, the reward model from step 5 returns a score.</p>
         </div>
       </header>
       <div class="empty" data-needs-labels hidden>
         <p>The RLHF side needs preferences first.</p>
         <button type="button" class="primary" data-act="auto-200">Auto-label 200 pairs</button>
-        <a href="#prefs">or label them yourself in step 4</a>
+        <a href="#prefs">or label them yourself in step 5</a>
       </div>
       <div class="pair">
         <figure class="field">
@@ -434,22 +488,22 @@
             <tr><th>Reward comes from</th><td>A program: unit tests, a math checker</td><td>A model trained on human comparisons</td></tr>
             <tr><th>Signal</th><td>Sparse 0/1. No gradient until a sample passes</td><td>Dense score everywhere, even where it is wrong</td></tr>
             <tr><th>Good for</th><td>Math, code, anything with an answer key</td><td>Helpfulness, style, safety: no answer key</td></tr>
-            <tr><th>How it fails</th><td>Holes in the verifier (step 3)</td><td>Extrapolation off the data (step 5)</td></tr>
+            <tr><th>How it fails</th><td>Holes in the verifier (step 4)</td><td>Extrapolation off the data (step 6)</td></tr>
             <tr><th>Defense</th><td>Better checkers, held-out tests</td><td>KL penalty, more and fresher labels</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="note wide-note">Here the verifier accepts exactly the best answers, which is why RLVR wins on true utility. Step 3 shows the same loop with a verifier that is wrong in places. The verifier reward is 3 × pass, the same height as the hidden utility, so one β is fair to both.</p>
+      <p class="note wide-note">Here the verifier accepts exactly the best answers, which is why RLVR wins on true utility. Step 4 shows the same loop with a verifier that is wrong in places. The verifier reward is 3 × pass, the same height as the hidden utility, so one β is fair to both.</p>
       <button class="next" data-next type="button">Next: reward hacking and defenses</button>
     </section>
 
-    <!-- 8 -->
+    <!-- 9 -->
     <section role="tabpanel" id="hacking-rlhf" aria-labelledby="t-hacking-rlhf" hidden>
       <header class="head">
-        <span class="step">8</span>
+        <span class="step">9</span>
         <div>
           <h1>Reward hacking and defenses</h1>
-          <p class="lede">Reward hacking means the policy scores high on the reward but low on what you wanted. You saw two causes: holes in a verifier (<a href="#hacking">step 3</a>) and a reward model that extrapolates (<a href="#rl">step 5</a>). Here is a third cause, and two defenses.</p>
+          <p class="lede">Reward hacking means the policy scores high on the reward but low on what you wanted. You saw two causes: holes in a verifier (<a href="#hacking">step 4</a>) and a reward model that extrapolates (<a href="#rl">step 6</a>). Here is a third cause, and two defenses.</p>
         </div>
       </header>
 
@@ -468,7 +522,7 @@
       <div class="controls">
         <button type="button" class="primary" data-act="spur-train">Train both</button>
         <label class="check"><input type="checkbox" class="show-utility" checked> Show hidden utility</label>
-        <span class="note">β = 0.3, near the best value from step 5.</span>
+        <span class="note">β = 0.3, near the best value from step 6.</span>
       </div>
       <div class="table-wrap">
         <table>
@@ -483,7 +537,7 @@
       <p class="intro">Singhal et al. (2023) found this in real RLHF: much of the reward gain came from longer answers, and a reward that only counts length reproduced most of RLHF's improvement. The reward model learns exactly what the labelers did, length liking included, and RL follows it. The policy gives longer answers, and they are worse than with fair labelers. A stronger KL penalty limits the damage by stopping earlier, but it cannot remove the bias: the reward model still points toward length, because the bias is in the data, not in the optimizer.</p>
 
       <h2>Two defenses</h2>
-      <p class="intro">At β = 0.1, plain RLHF runs past the best answers (step 5). Two common defenses:</p>
+      <p class="intro">At β = 0.1, plain RLHF runs past the best answers (step 6). Two common defenses:</p>
       <ul class="intro">
         <li><b>Ensemble</b> (a variant of Coste et al. 2023, who found that conservative ensembles practically eliminate overoptimization for best-of-n). Fit 8 reward models, each on a resample of the labels. Optimize their mean minus 3 × their spread. The models agree where there is data and disagree away from it, so the policy stays near the data.</li>
         <li><b>Iterated RLHF.</b> Every 30 steps, label 150 fresh pairs from the current policy and refit the reward model on them. The reward model is always accurate where the policy is now.</li>
@@ -548,8 +602,8 @@
         <table class="compare">
           <thead><tr><th>Cause of reward hacking</th><th>Where</th><th>What helps</th><th>What does not</th></tr></thead>
           <tbody>
-            <tr><th>The verifier accepts wrong answers</th><td><a href="#hacking">Step 3</a></td><td>Stronger checks, held-out tests</td><td>More RL. It finds the holes faster.</td></tr>
-            <tr><th>The reward model extrapolates off the data</th><td><a href="#rl">Step 5</a>, here</td><td>KL penalty, ensembles, fresh labels from the current policy</td><td>A better optimizer</td></tr>
+            <tr><th>The verifier accepts wrong answers</th><td><a href="#hacking">Step 4</a></td><td>Stronger checks, held-out tests</td><td>More RL. It finds the holes faster.</td></tr>
+            <tr><th>The reward model extrapolates off the data</th><td><a href="#rl">Step 6</a>, here</td><td>KL penalty, ensembles, fresh labels from the current policy</td><td>A better optimizer</td></tr>
             <tr><th>The labelers prefer the wrong thing</th><td>Here</td><td>Better labeling guidelines, length control, fresh labels while the bias is small</td><td>Ensembles, because every member learns the same bias</td></tr>
           </tbody>
         </table>
@@ -557,10 +611,10 @@
       <button class="next" data-next type="button">Next: change the prompt, not the weights</button>
     </section>
 
-    <!-- 9 -->
+    <!-- 10 -->
     <section role="tabpanel" id="gepa-loop" aria-labelledby="t-gepa-loop" hidden>
       <header class="head">
-        <span class="step">9</span>
+        <span class="step">10</span>
         <div>
           <h1>GEPA: reflective prompt evolution</h1>
           <p class="lede">Every method so far changed the weights, which bends the paths. GEPA (Agrawal et al., 2025) leaves the weights alone and rewrites the prompt. The prompt is part of the context, so it changes where each chain starts. The frozen model then walks its usual arc from a better place. GEPA runs a few tasks, reads in words what went wrong, and edits the instructions.</p>
@@ -615,10 +669,10 @@
       <button class="next" data-next type="button">Next: Pareto search vs RL</button>
     </section>
 
-    <!-- 10 -->
+    <!-- 11 -->
     <section role="tabpanel" id="gepa-search" aria-labelledby="t-gepa-search" hidden>
       <header class="head">
-        <span class="step">10</span>
+        <span class="step">11</span>
         <div>
           <h1>Pareto search vs RL</h1>
           <p class="lede">GEPA keeps every candidate that improved and scores each one on every task. It picks the next parent from the Pareto front: the candidates that are best on at least one task, chosen more often the more tasks they win.</p>
@@ -642,7 +696,7 @@
       </div>
       <p id="g10-status" class="status">Open this step to run the comparison.</p>
       <div class="controls">
-        <button type="button" data-act="g10-rerun">Rerun with step 9's settings</button>
+        <button type="button" data-act="g10-rerun">Rerun with step 10's settings</button>
         <span class="note">The pool above and this button use <span id="g10-settings">default settings</span>. GRPO does not change.</span>
       </div>
       <div class="trio">
@@ -662,10 +716,10 @@
       <button class="next" data-next type="button">Next: what RL can and cannot add</button>
     </section>
 
-    <!-- 11 -->
+    <!-- 12 -->
     <section role="tabpanel" id="beyond-limits" aria-labelledby="t-beyond-limits" hidden>
       <header class="head">
-        <span class="step">11</span>
+        <span class="step">12</span>
         <div>
           <h1>What RL can and cannot add</h1>
           <p class="lede">RL with a verifier makes the model land more often on its first try. Does it also make the model able to solve problems it could not solve before? And what if the verifier almost never says yes?</p>
@@ -698,7 +752,7 @@
       </div>
 
       <h2>Outcome reward vs process reward</h2>
-      <p class="intro">Make the verifier small (radius 0.08, as in step 7) and the base model almost never lands. An outcome reward, 0/1 at the end, then learns only from the rare lucky paths. A process reward scores the steps on the way: here, how many of 5 checkpoints the path passes inside a corridor around a correct path. Both use the same RL loop with a weak KL penalty (β = 0.01).</p>
+      <p class="intro">Make the verifier small (radius 0.08, as in step 8) and the base model almost never lands. An outcome reward, 0/1 at the end, then learns only from the rare lucky paths. A process reward scores the steps on the way: here, how many of 5 checkpoints the path passes inside a corridor around a correct path. Both use the same RL loop with a weak KL penalty (β = 0.01).</p>
       <div class="pair">
         <figure class="field"><div class="field-title">Outcome reward: 0/1 at the end</div><canvas id="proc-field-outcome" aria-label="Walks trained with an outcome reward."></canvas></figure>
         <figure class="field"><div class="field-title">Process reward: credit per checkpoint</div><canvas id="proc-field-process" aria-label="Walks trained with a process reward and its checkpoint corridor."></canvas></figure>
@@ -711,16 +765,16 @@
         <div class="chart-box"><div class="chart-title">Landing rate during training</div><div id="proc-chart" class="chart-host"></div></div>
         <aside class="side">
           <p>The process reward gives partial credit long before any path lands, so it learns faster at first: it reaches 20% landing in about 50 steps, against about 100 for the outcome reward. Then it stalls near 60%, while the outcome reward keeps climbing to about 95%. The process reward pays for staying in the corridor, which is only a stand-in for landing, and optimizing a stand-in stops short of the real goal.</p>
-          <p class="note">Lightman et al. (2023) trained process and outcome reward models from human labels (PRM800K, 800,000 step-level labels) and used them to pick the best of many sampled solutions; process supervision "significantly outperforms" outcome supervision there, solving 78% of a MATH test subset. This toy instead uses a hand-built corridor as an RL reward, so it shows the trade-off, not their result. A corridor around a wrong path would teach the wrong path: the step 3 problem one level down.</p>
+          <p class="note">Lightman et al. (2023) trained process and outcome reward models from human labels (PRM800K, 800,000 step-level labels) and used them to pick the best of many sampled solutions; process supervision "significantly outperforms" outcome supervision there, solving 78% of a MATH test subset. This toy instead uses a hand-built corridor as an RL reward, so it shows the trade-off, not their result. A corridor around a wrong path would teach the wrong path: the step 4 problem one level down.</p>
         </aside>
       </div>
       <button class="next" data-next type="button">Next: RL algorithms and best-of-N</button>
     </section>
 
-    <!-- 12 -->
+    <!-- 13 -->
     <section role="tabpanel" id="beyond-algorithms" aria-labelledby="t-beyond-algorithms" hidden>
       <header class="head">
-        <span class="step">12</span>
+        <span class="step">13</span>
         <div>
           <h1>RL algorithms and best-of-N</h1>
           <p class="lede">The same 0/1 task as step 1, but now the policy also chooses how long to think: its chain length is sampled around a mean that training can move. The algorithms differ only in how they turn rewards into weights on each answer.</p>
@@ -766,7 +820,7 @@
       </div>
 
       <h2>Best-of-N against RL, at the same KL</h2>
-      <p class="intro">Best-of-N needs no training: sample N answers from the base model and keep the one the reward model scores highest. Its distance from the base model is log N − (N − 1)/N. This uses step 5's reward model, fitted on a fixed set of 200 labels.</p>
+      <p class="intro">Best-of-N needs no training: sample N answers from the base model and keep the one the reward model scores highest. Its distance from the base model is log N − (N − 1)/N. This uses step 6's reward model, fitted on a fixed set of 200 labels.</p>
       <div class="chart-box">
         <div class="chart-title">Gain over the base model against √KL: RL (solid) and best-of-N (dashed)</div>
         <div id="bon-chart" class="chart-host tall"></div>
@@ -783,16 +837,17 @@
     </section>
   </main>
 </div>
-<script src="js/walks-model.js?v=32"></script>
-<script src="js/rlhf-model.js?v=32"></script>
-<script src="js/chart.js?v=32"></script>
-<script src="js/walks-figure.js?v=32"></script>
-<script src="js/rlhf-figure.js?v=32"></script>
-<script src="js/gepa-model.js?v=32"></script>
-<script src="js/gepa-figure.js?v=32"></script>
-<script src="js/beyond-model.js?v=32"></script>
-<script src="js/beyond-figure.js?v=32"></script>
-<script src="js/app.js?v=32"></script>
-<script src="js/recorder.js?v=32"></script>
+<script src="js/walks-model.js?v=38"></script>
+<script src="js/rlhf-model.js?v=38"></script>
+<script src="js/chart.js?v=38"></script>
+<script src="js/walks-figure.js?v=38"></script>
+<script src="js/rlhf-figure.js?v=38"></script>
+<script src="js/gepa-model.js?v=38"></script>
+<script src="js/gepa-figure.js?v=38"></script>
+<script src="js/beyond-model.js?v=38"></script>
+<script src="js/beyond-figure.js?v=38"></script>
+<script src="js/tokens-figure.js?v=38"></script>
+<script src="js/app.js?v=38"></script>
+<script src="js/recorder.js?v=38"></script>
 </body>
 </html>
